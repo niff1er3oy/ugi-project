@@ -9,6 +9,8 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 
+const CALIBRATION_WIDTHS = [100, 86, 74, 62, 52, 42, 34, 26];
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -44,93 +46,87 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-white">
-            เข้าสู่ระบบ
-          </h1>
+    <div className="min-h-screen flex">
+      {/* ── Left: Brand panel ─────────────────────────────── */}
+      <aside className="hidden lg:flex lg:w-[420px] xl:w-[480px] flex-col flex-shrink-0 bg-primary select-none">
+        {/* Wordmark */}
+        <div className="px-12 pt-14">
+          <span className="text-white text-[34px] font-bold tracking-[-0.03em] leading-none">
+            UGI
+          </span>
         </div>
 
-        <form onSubmit={handleEmailLogin} className="space-y-4">
-          <div className="space-y-2">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              อีเมล
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-black placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500"
-              placeholder="you@example.com"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              รหัสผ่าน
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-black placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+        {/* Product identity */}
+        <div className="flex-1 flex flex-col justify-center px-12">
+          <p
+            className="text-white/90 text-[22px] font-semibold leading-[1.35] mb-4"
+            style={{ textWrap: "balance" } as React.CSSProperties}
           >
-            {loading ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
-          </button>
-        </form>
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-zinc-400 dark:bg-black dark:text-zinc-600">
-              หรือ
-            </span>
-          </div>
+            ระบบบริหาร
+            <br />
+            งานพนักงาน
+          </p>
+          <p className="text-white/50 text-[13.5px] leading-[1.65]">
+            จัดการข้อมูลพนักงาน เอกสารรับรอง
+            <br />
+            การอบรม และความปลอดภัยในที่เดียว
+          </p>
         </div>
 
-        <button
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800"
-        >
-          <GoogleIcon />
-          เข้าสู่ระบบด้วย Google
-        </button>
-      </div>
+        {/* Instrument calibration marks */}
+        <div className="px-12 pb-14 flex flex-col gap-[5px]">
+          {CALIBRATION_WIDTHS.map((w, i) => (
+            <div
+              key={i}
+              className="h-px animate-calibration"
+              style={{
+                width: `${w}%`,
+                backgroundColor: `oklch(1 0 0 / ${Math.max(0.04, 0.11 - i * 0.01)})`,
+                "--i": i,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+      </aside>
+
+      {/* ── Right: Form panel ─────────────────────────────── */}
+      <main className="flex flex-1 flex-col items-center justify-center px-6 py-12 bg-background">
+        <div className="w-full max-w-[400px] animate-enter">
+          <div className="lg:hidden mb-12">
+            <span className="text-primary text-[32px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+          </div>
+          <h1 className="text-[26px] font-semibold text-ink tracking-[-0.01em] leading-[1.2] mb-9" style={{ textWrap: "balance" } as React.CSSProperties}>เข้าสู่ระบบ</h1>
+          <form onSubmit={handleEmailLogin} className="flex flex-col gap-6">
+            <div className="flex flex-col gap-[7px]">
+              <label htmlFor="email" className="text-[13.5px] font-medium text-ink leading-none">อีเมล</label>
+              <input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} className="field-input" style={{ padding: "10px 14px", fontSize: "15px" }} placeholder="you@example.com" />
+            </div>
+            <div className="flex flex-col gap-[7px]">
+              <label htmlFor="password" className="text-[13.5px] font-medium text-ink leading-none">รหัสผ่าน</label>
+              <input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} className="field-input" style={{ padding: "10px 14px", fontSize: "15px" }} placeholder="••••••••" />
+            </div>
+            {error && <p key={error} className="animate-shake text-[13px] text-error leading-[1.45]">{error}</p>}
+            <button type="submit" disabled={loading} className="w-full rounded-[6px] bg-primary px-4 py-[11px] text-[15px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-primary-deep active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed">
+              {loading ? <span className="flex items-center justify-center gap-2"><span className="h-[14px] w-[14px] rounded-full border-2 border-white/30 border-t-white animate-spin" />กำลังเข้าสู่ระบบ…</span> : "เข้าสู่ระบบ"}
+            </button>
+          </form>
+          <div className="relative my-7 flex items-center">
+            <div className="flex-1 border-t border-border" /><span className="px-3 text-[12px] text-muted bg-background">หรือ</span><div className="flex-1 border-t border-border" />
+          </div>
+          <button onClick={handleGoogleLogin} disabled={loading} className="w-full flex items-center justify-center gap-[10px] rounded-[6px] border border-border bg-background px-4 py-[11px] text-[15px] font-medium text-ink transition-[background-color,border-color] duration-150 hover:bg-surface hover:border-border-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed">
+            <GoogleIcon />เข้าสู่ระบบด้วย Google
+          </button>
+        </div>
+      </main>
     </div>
   );
 }
 
+/* ── Sub-components ───────────────────────────────────────── */
+
 function GoogleIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24">
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
