@@ -262,9 +262,10 @@ export default function EmployeeForm({
                 key={value}
                 type="button"
                 onClick={() => set("status", value)}
+                aria-pressed={active}
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-[8px] border py-2.5 text-[12px] font-medium transition-colors ${
                   active
-                    ? "border-primary bg-primary/5 text-primary"
+                    ? "border-primary bg-primary/5 text-primary-text"
                     : "border-border text-muted hover:border-border-strong hover:text-ink"
                 }`}
               >

@@ -8,10 +8,12 @@ export type Company = {
   taxId: string;
   address: string;
   phone: string;
+  email: string;
   website: string;
   founded: string;
   color: string;
   bg: string;
+  logoURL?: string;
 };
 
 export const COMPANIES: Company[] = [
@@ -23,6 +25,7 @@ export const COMPANIES: Company[] = [
     taxId: "0105556123456",
     address: "99/1 นิคมอุตสาหกรรมอมตะซิตี้ ชลบุรี 20000",
     phone: "038-100-200",
+    email: "info@ugi-manufacturing.co.th",
     website: "www.ugi-manufacturing.co.th",
     founded: "2556",
     color: "oklch(0.44 0.27 292)",
@@ -36,6 +39,7 @@ export const COMPANIES: Company[] = [
     taxId: "0107548234567",
     address: "388 อาคาร UGI ทาวเวอร์ ถ.สีลม บางรัก กรุงเทพฯ 10500",
     phone: "02-200-3000",
+    email: "info@ugi.co.th",
     website: "www.ugi.co.th",
     founded: "2548",
     color: "oklch(0.42 0.14 195)",
@@ -49,6 +53,7 @@ export const COMPANIES: Company[] = [
     taxId: "0105562345678",
     address: "99/1 นิคมอุตสาหกรรมอมตะซิตี้ ชลบุรี 20000",
     phone: "038-100-300",
+    email: "info@ugi-services.co.th",
     website: "www.ugi-services.co.th",
     founded: "2562",
     color: "oklch(0.50 0.17 25)",

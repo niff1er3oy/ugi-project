@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
-import EmployeeForm, { type EmployeeFormData } from "@/components/employee-form";
+import CompanyForm, { type CompanyFormData } from "@/components/company-form";
 
-export default function NewEmployeePage() {
+export default function NewCompanyPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
 
@@ -18,7 +18,7 @@ export default function NewEmployeePage() {
     });
   }, [router]);
 
-  function handleSubmit(data: EmployeeFormData) {
+  function handleSubmit(data: CompanyFormData) {
     // TODO: save to Firestore, then navigate
     router.back();
   }
@@ -26,10 +26,14 @@ export default function NewEmployeePage() {
   if (!ready) {
     return (
       <>
-        <Navbar title="เพิ่มพนักงาน" />
+        <Navbar title="เพิ่มบริษัท" />
         <main className="mx-auto w-full max-w-2xl px-4 py-6" aria-busy="true">
           <div className="space-y-7" aria-hidden="true">
-            {[4, 1, 2].map((fields, i) => (
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-16 w-16 animate-pulse rounded-[16px] bg-border" />
+              <div className="h-3 w-16 animate-pulse rounded-[3px] bg-border" />
+            </div>
+            {[3, 3, 1].map((fields, i) => (
               <div key={i}>
                 <div className="mb-3 h-3 w-20 animate-pulse rounded-[3px] bg-border" />
                 <div className="space-y-3">
@@ -50,10 +54,10 @@ export default function NewEmployeePage() {
 
   return (
     <>
-      <Navbar title="เพิ่มพนักงาน" />
+      <Navbar title="เพิ่มบริษัท" />
       <main className="mx-auto w-full max-w-2xl px-4 py-6 pb-28 animate-enter">
-        <EmployeeForm
-          submitLabel="เพิ่มพนักงาน"
+        <CompanyForm
+          submitLabel="เพิ่มบริษัท"
           onSubmit={handleSubmit}
           onCancel={() => router.back()}
         />

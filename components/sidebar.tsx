@@ -27,7 +27,7 @@ export default function Sidebar() {
     <aside className="hidden lg:flex h-screen w-56 shrink-0 flex-col sticky top-0 border-r border-border bg-surface">
       {/* Logo */}
       <div className="flex h-14 items-center border-b border-border px-5">
-        <Link href="/" className="text-[15px] font-bold tracking-[-0.03em] text-primary">
+        <Link href="/" className="text-[15px] font-bold tracking-[-0.03em] text-primary-text">
           UGI
         </Link>
       </div>
@@ -43,11 +43,11 @@ export default function Sidebar() {
                   href={mod.href}
                   className={`flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-[13px] font-medium transition-colors duration-150 ${
                     active
-                      ? "bg-primary-ghost text-primary"
+                      ? "bg-primary-ghost text-primary-text"
                       : "text-muted hover:bg-background hover:text-ink"
                   }`}
                 >
-                  <span className={`shrink-0 ${active ? "text-primary" : "text-muted"}`}>
+                  <span className={`shrink-0 ${active ? "text-primary-text" : "text-muted"}`}>
                     {mod.icon}
                   </span>
                   <span className="truncate">{mod.label}</span>
@@ -67,7 +67,7 @@ export default function Sidebar() {
               href="/notifications"
               className={`flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-[13px] font-medium transition-colors duration-150 ${
                 pathname.startsWith("/notifications")
-                  ? "bg-primary-ghost text-primary"
+                  ? "bg-primary-ghost text-primary-text"
                   : "text-muted hover:bg-background hover:text-ink"
               }`}
             >
@@ -89,7 +89,7 @@ export default function Sidebar() {
               href="/settings"
               className={`flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-[13px] font-medium transition-colors duration-150 ${
                 pathname.startsWith("/settings")
-                  ? "bg-primary-ghost text-primary"
+                  ? "bg-primary-ghost text-primary-text"
                   : "text-muted hover:bg-background hover:text-ink"
               }`}
             >
@@ -118,7 +118,7 @@ export default function Sidebar() {
               className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-primary/20"
             />
           ) : (
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-ghost text-primary">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-ghost text-primary-text">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
               </svg>

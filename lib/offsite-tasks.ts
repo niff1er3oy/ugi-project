@@ -22,7 +22,7 @@ export type OffsiteTask = {
 // ── Config ─────────────────────────────────────────────────────
 export const STATUS_CONFIG: Record<WorkStatus, { label: string; bg: string; text: string; dot: string }> = {
   pending:     { label: "รอดำเนินการ",    bg: "bg-accent-pale",   text: "text-accent-text",  dot: "oklch(0.72 0.14 75)"  },
-  in_progress: { label: "กำลังดำเนินการ", bg: "bg-primary-ghost", text: "text-primary",      dot: "oklch(0.44 0.27 292)" },
+  in_progress: { label: "กำลังดำเนินการ", bg: "bg-primary-ghost", text: "text-primary-text", dot: "oklch(0.44 0.27 292)" },
   completed:   { label: "เสร็จแล้ว",      bg: "bg-success-pale",  text: "text-success-text", dot: "oklch(0.52 0.16 145)" },
   cancelled:   { label: "ถูกยกเลิก",      bg: "bg-error-pale",    text: "text-error",        dot: "oklch(0.50 0.17 25)"  },
 };

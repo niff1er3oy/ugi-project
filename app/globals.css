@@ -8,6 +8,7 @@
   --primary:        oklch(0.44 0.27 292);
   --primary-deep:   oklch(0.33 0.23 292);
   --primary-ghost:  oklch(0.94 0.055 292);
+  --primary-text:   oklch(0.44 0.27 292);
 
   --accent:         oklch(0.72 0.14 75);
   --accent-pale:    oklch(0.95 0.04 75);
@@ -43,6 +44,8 @@
     --border:         oklch(0.27 0.010 292);
     --border-strong:  oklch(0.43 0.013 292);
     --primary-ghost:  oklch(0.18 0.060 292);
+    --primary-text:   oklch(0.72 0.22 292);
+    --error:          oklch(0.68 0.18 25);
     --accent-pale:    oklch(0.20 0.040 75);
     --accent-text:    oklch(0.82 0.14 75);
     --error-pale:     oklch(0.20 0.040 25);
@@ -61,6 +64,7 @@
   --color-primary:       var(--primary);
   --color-primary-deep:  var(--primary-deep);
   --color-primary-ghost: var(--primary-ghost);
+  --color-primary-text:  var(--primary-text);
 
   --color-accent:        var(--accent);
   --color-accent-pale:   var(--accent-pale);
@@ -108,7 +112,7 @@ body {
 .field-input::placeholder {
   color: var(--muted);
 }
-.field-input:focus {
+.field-input:focus-visible {
   border-color: var(--primary);
   border-width: 1.5px;
 }
@@ -167,90 +171,4 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* ── Home page profile header ───────────────────────────────── */
-.v1-profile {
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 24px;
-}
-.v1-avatar {
-  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
-  background: var(--primary); color: white;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; font-weight: 600; overflow: hidden;
-}
-.v1-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.v1-profile-info { min-width: 0; }
-.v1-greeting { font-size: 12px; color: var(--muted); line-height: 1.3; }
-.v1-username { font-size: 16px; font-weight: 600; color: var(--ink); line-height: 1.3; }
-.v1-usermeta {
-  font-size: 12px; color: var(--muted); line-height: 1.4;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.v1-profile-skeleton {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
-}
-.v1-avatar-skel {
-  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
-  background: var(--border);
-}
-@media (min-width: 1024px) {
-  .v1-profile { gap: 16px; margin-bottom: 32px; }
-  .v1-avatar { width: 56px; height: 56px; font-size: 18px; }
-  .v1-username { font-size: 20px; }
-  .v1-usermeta { font-size: 13px; }
-  .v1-profile-skeleton { gap: 16px; margin-bottom: 32px; }
-  .v1-avatar-skel { width: 56px; height: 56px; }
-}
-
-/* ── Module grid (home page) ────────────────────────────────── */
-.v1-main {
-  max-width: 64rem; width: 100%; margin: 0 auto; padding: 40px 16px;
-}
-.v1-main .v1-header { margin-bottom: 24px; }
-.v1-main .v1-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  list-style: none; padding: 0; margin: 0;
-}
-.v1-main .v1-grid > li { display: contents; }
-@media (min-width: 480px) {
-  .v1-main .v1-grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (min-width: 640px) {
-  .v1-main .v1-grid { grid-template-columns: repeat(4, 1fr); }
-}
-.v1-main .v1-card {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 20px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  text-decoration: none;
-  transition: box-shadow 150ms var(--ease-out-quart),
-              border-color 150ms, transform 120ms;
-}
-.v1-main .v1-card:hover {
-  border-color: var(--border-strong);
-  box-shadow: 0 2px 8px oklch(0.17 0.012 292 / 0.10);
-}
-.v1-main .v1-card:active { transform: scale(0.97); }
-.v1-main .v1-icon {
-  width: 48px; height: 48px; border-radius: 10px;
-  background: var(--primary-ghost); color: var(--primary);
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 12px; flex-shrink: 0;
-  transition: background 150ms, color 150ms;
-}
-.v1-main .v1-card:hover .v1-icon { background: var(--primary); color: white; }
-.v1-main .v1-label {
-  font-size: 14px; font-weight: 600; color: var(--ink);
-  text-align: center; line-height: 1.4; transition: color 150ms;
-}
-.v1-main .v1-card:hover .v1-label { color: var(--primary); }
-.v1-main .v1-desc {
-  font-size: 12px; color: var(--muted);
-  text-align: center; margin-top: 3px; line-height: 1.4;
 }

@@ -14,9 +14,9 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
 import { DepartmentChip } from "@/components/department-chip";
+import { WorkType, TYPE_CONFIG } from "@/lib/offsite-tasks";
 
 // ── Types ──────────────────────────────────────────────────────
-type WorkType = "ซ่อมบำรุง" | "ติดตั้ง" | "ตรวจสอบ" | "อื่นๆ";
 type WorkStatus = "completed" | "in_progress" | "cancelled";
 
 type WorkTask = {
@@ -37,32 +37,9 @@ const MONTHS_TH = [
   "กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม",
 ];
 
-const TYPE_CONFIG: Record<WorkType, { color: string; lightBg: string; iconPath: string }> = {
-  "ซ่อมบำรุง": {
-    color: "oklch(0.62 0.14 75)",
-    lightBg: "oklch(0.95 0.04 75)",
-    iconPath: "M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z",
-  },
-  "ติดตั้ง": {
-    color: "oklch(0.44 0.27 292)",
-    lightBg: "oklch(0.94 0.055 292)",
-    iconPath: "M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21",
-  },
-  "ตรวจสอบ": {
-    color: "oklch(0.42 0.14 195)",
-    lightBg: "oklch(0.93 0.04 195)",
-    iconPath: "m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6",
-  },
-  "อื่นๆ": {
-    color: "oklch(0.50 0.05 292)",
-    lightBg: "oklch(0.96 0.01 292)",
-    iconPath: "M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z",
-  },
-};
-
 const STATUS_CONFIG: Record<WorkStatus, { label: string; bg: string; text: string; dot: string }> = {
   completed:   { label: "เสร็จแล้ว",      bg: "bg-success-pale",  text: "text-success-text", dot: "oklch(0.52 0.16 145)" },
-  in_progress: { label: "กำลังดำเนินการ", bg: "bg-primary-ghost", text: "text-primary",      dot: "oklch(0.44 0.27 292)" },
+  in_progress: { label: "กำลังดำเนินการ", bg: "bg-primary-ghost", text: "text-primary-text", dot: "oklch(0.44 0.27 292)" },
   cancelled:   { label: "ถูกยกเลิก",      bg: "bg-error-pale",    text: "text-error",        dot: "oklch(0.50 0.17 25)"  },
 };
 
@@ -183,7 +160,7 @@ function DonutChart({ segments, total }: { segments: { label: string; count: num
   return (
     <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
       <div className="relative w-full max-w-[280px] mx-auto sm:mx-0 sm:w-[200px] shrink-0">
-        <canvas ref={canvasRef} aria-label="สัดส่วนประเภทงาน" />
+        <canvas ref={canvasRef} role="img" aria-label="สัดส่วนประเภทงาน" />
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center select-none">
           <span className="text-[28px] font-bold leading-none tracking-[-0.03em] text-ink">{total}</span>
           <span className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.07em] text-muted">งานทั้งหมด</span>
@@ -440,7 +417,7 @@ export default function ReportsPage() {
           {[
             { label: "การปฏิบัติงานทั้งหมด", value: stats.total,      unit: "งาน", color: "text-ink",          dot: "bg-border-strong" },
             { label: "งานที่เสร็จแล้ว",      value: stats.completed,  unit: "งาน", color: "text-success-text", dot: "bg-success"        },
-            { label: "กำลังดำเนินการ",        value: stats.inProgress, unit: "งาน", color: "text-primary",      dot: "bg-primary"        },
+            { label: "กำลังดำเนินการ",        value: stats.inProgress, unit: "งาน", color: "text-primary-text", dot: "bg-primary"        },
             { label: "ถูกยกเลิก",             value: stats.cancelled,  unit: "งาน", color: "text-error",        dot: "bg-error"          },
           ].map((kpi, i) => (
             <div
@@ -480,7 +457,7 @@ export default function ReportsPage() {
         <div className="animate-enter" style={{ animationDelay: "140ms" }}>
           <div className="flex items-center justify-between mb-3">
             <p className="text-[13px] font-semibold text-ink">การปฏิบัติงานล่าสุด</p>
-            <button className="text-[12px] font-medium text-primary transition-colors hover:text-primary-deep">
+            <button className="text-[12px] font-medium text-primary-text transition-colors hover:text-primary-deep">
               ดูทั้งหมด
             </button>
           </div>

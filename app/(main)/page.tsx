@@ -48,25 +48,27 @@ export default function HomePage() {
     return (
       <>
         <Navbar title="เมนูหลัก" back={false} />
-        <main className="v1-main" aria-busy="true" aria-label="กำลังโหลด">
-          <div className="v1-profile-skeleton" aria-hidden="true">
-            <div className="v1-avatar-skel animate-pulse" />
+        <main className="mx-auto w-full max-w-[64rem] px-4 py-10" aria-busy="true" aria-label="กำลังโหลด">
+          <div className="mb-6 flex items-center gap-3 lg:mb-8 lg:gap-4" aria-hidden="true">
+            <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-border lg:h-14 lg:w-14" />
             <div>
               <div className="h-[16px] w-32 animate-pulse rounded-[3px] bg-border" />
               <div className="mt-1.5 h-[13px] w-40 animate-pulse rounded-[3px] bg-border" />
             </div>
           </div>
-          <div className="v1-grid" aria-hidden="true">
+          <ul className="grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 sm:grid-cols-4" aria-hidden="true">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="v1-card pointer-events-none select-none">
-                <div className="v1-icon">
-                  <div className="h-8 w-8 animate-pulse rounded-[8px] bg-border" />
+              <li key={i} className="contents">
+                <div className="flex flex-col items-center rounded-[12px] border border-border bg-surface px-4 py-5 pointer-events-none select-none">
+                  <div className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-[10px] bg-primary-ghost">
+                    <div className="h-8 w-8 animate-pulse rounded-[8px] bg-border" />
+                  </div>
+                  <div className="mt-2 h-[13px] w-16 animate-pulse rounded-[3px] bg-border" />
+                  <div className="mt-1.5 h-[11px] w-24 animate-pulse rounded-[3px] bg-border" />
                 </div>
-                <div className="mt-2 h-[13px] w-16 animate-pulse rounded-[3px] bg-border" />
-                <div className="mt-1.5 h-[11px] w-24 animate-pulse rounded-[3px] bg-border" />
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </main>
       </>
     );
@@ -75,29 +77,39 @@ export default function HomePage() {
   return (
     <>
       <Navbar title="เมนูหลัก" back={false} />
-      <main className="v1-main">
-        <div className="v1-profile animate-enter">
-          <div className="v1-avatar" aria-hidden="true">
+      <main className="mx-auto w-full max-w-[64rem] px-4 py-10">
+        <div className="mb-6 flex items-center gap-3 animate-enter lg:mb-8 lg:gap-4">
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-[15px] font-semibold text-white lg:h-14 lg:w-14 lg:text-[18px]"
+            aria-hidden="true"
+          >
             {user.photoURL ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={user.photoURL} alt="" />
+              <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
             ) : (
               <span>{initials}</span>
             )}
           </div>
-          <div className="v1-profile-info">
-            <p className="v1-username">{displayName}</p>
-            {profile?.position && <p className="v1-usermeta">{profile.position}</p>}
+          <div className="min-w-0">
+            <p className="text-[16px] font-semibold leading-[1.3] text-ink lg:text-[20px]">{displayName}</p>
+            {profile?.position && (
+              <p className="truncate text-[12px] leading-[1.4] text-muted lg:text-[13px]">{profile.position}</p>
+            )}
           </div>
         </div>
         <nav aria-label="เมนูหลัก">
-          <ul className="v1-grid">
+          <ul className="grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 sm:grid-cols-4">
             {modules.map((mod) => (
-              <li key={mod.href}>
-                <Link href={mod.href} className="v1-card">
-                  <div className="v1-icon">{mod.icon}</div>
-                  <span className="v1-label">{mod.label}</span>
-                  <span className="v1-desc">{mod.description}</span>
+              <li key={mod.href} className="contents">
+                <Link
+                  href={mod.href}
+                  className="group flex flex-col items-center rounded-[12px] border border-border bg-surface px-4 py-5 text-center transition-[box-shadow,border-color,transform] duration-150 hover:border-border-strong hover:shadow-[0_2px_8px_oklch(0.17_0.012_292_/_0.10)] active:scale-[0.97]"
+                >
+                  <div className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-[10px] bg-primary-ghost text-primary-text transition-[background-color,color] duration-150 group-hover:bg-primary group-hover:text-white">
+                    {mod.icon}
+                  </div>
+                  <span className="text-[14px] font-semibold leading-[1.4] text-ink transition-colors duration-150 group-hover:text-primary-text">{mod.label}</span>
+                  <span className="mt-[3px] text-[12px] leading-[1.4] text-muted">{mod.description}</span>
                 </Link>
               </li>
             ))}

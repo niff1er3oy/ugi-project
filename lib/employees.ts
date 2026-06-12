@@ -1,6 +1,12 @@
 // ── Types ──────────────────────────────────────────────────────
 export type EmpStatus = "active" | "leave" | "resigned";
 
+export type HistoryEntry = {
+  date: string;
+  status: EmpStatus;
+  note?: string;
+};
+
 export type Employee = {
   id: string;
   firstName: string;
@@ -61,3 +67,54 @@ export const EMPLOYEES: Employee[] = [
   { id: "EMP-013", firstName: "บุญมี",     lastName: "แดงเข้ม",    department: "ฝ่ายความปลอดภัย", status: "active",   company: "บริษัท UGI เซอร์วิสเซส จำกัด",       position: "หัวหน้างานความปลอดภัย",  phone: "084-456-7890", email: "boonmee.d@ugi.co.th",   startDate: "9 มิ.ย. 2560"  },
   { id: "EMP-014", firstName: "สมพงษ์",    lastName: "ทองคำ",      department: "ฝ่ายความปลอดภัย", status: "leave",    company: "บริษัท UGI เซอร์วิสเซส จำกัด",       position: "เจ้าหน้าที่ความปลอดภัย", phone: "085-567-8901", email: "sompong.t@ugi.co.th",   startDate: "30 ส.ค. 2567" },
 ];
+
+// ── ประวัติพนักงาน (newest first) ─────────────────────────────
+export const EMPLOYEE_HISTORY: Record<string, HistoryEntry[]> = {
+  "EMP-001": [
+    { date: "1 ม.ค. 2560",   status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-002": [
+    { date: "3 มี.ค. 2561",  status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-003": [
+    { date: "10 เม.ย. 2567", status: "leave",    note: "ลาพักร้อน" },
+    { date: "5 มิ.ย. 2563",  status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-004": [
+    { date: "12 ส.ค. 2564",  status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-005": [
+    { date: "8 ก.พ. 2559",   status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-006": [
+    { date: "20 เม.ย. 2562", status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-007": [
+    { date: "2 พ.ค. 2567",   status: "leave",    note: "ลาป่วย" },
+    { date: "7 ก.ค. 2565",   status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-008": [
+    { date: "15 ต.ค. 2558",  status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-009": [
+    { date: "2 พ.ย. 2566",   status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-010": [
+    { date: "11 ธ.ค. 2557",  status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-011": [
+    { date: "1 ส.ค. 2567",   status: "resigned", note: "ลาออก" },
+    { date: "20 มิ.ย. 2566", status: "leave",    note: "ลาพักร้อน" },
+    { date: "18 ม.ค. 2563",  status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-012": [
+    { date: "24 มี.ค. 2561", status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-013": [
+    { date: "9 มิ.ย. 2560",  status: "active",   note: "เริ่มงาน" },
+  ],
+  "EMP-014": [
+    { date: "5 ก.ย. 2567",   status: "leave",    note: "ลาพักร้อน" },
+    { date: "30 ส.ค. 2567",  status: "active",   note: "เริ่มงาน" },
+  ],
+};

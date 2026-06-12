@@ -56,9 +56,40 @@ export default function AccountSettingsPage() {
 
   if (!ready) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-ghost border-t-primary" />
-      </div>
+      <>
+        <Navbar title="ตั้งค่าบัญชี" />
+        <main className="mx-auto w-full max-w-3xl px-4 py-8" aria-busy="true" aria-label="กำลังโหลด">
+          <div className="mb-6 flex justify-center" aria-hidden="true">
+            <div className="h-20 w-20 animate-pulse rounded-full bg-border" />
+          </div>
+          <div className="mb-6" aria-hidden="true">
+            <div className="mb-2 h-3 w-24 animate-pulse rounded-[3px] bg-border" />
+            <div className="overflow-hidden rounded-[12px] border border-border divide-y divide-border">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="bg-background px-4 py-3.5">
+                  <div className="mb-1.5 h-3 w-12 animate-pulse rounded-[3px] bg-border" />
+                  <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
+                </div>
+              ))}
+              <div className="flex items-center justify-end bg-background px-4 py-3.5">
+                <div className="h-8 w-16 animate-pulse rounded-[6px] bg-border" />
+              </div>
+            </div>
+          </div>
+          <div aria-hidden="true">
+            <div className="mb-2 h-3 w-16 animate-pulse rounded-[3px] bg-border" />
+            <div className="overflow-hidden rounded-[12px] border border-border">
+              <div className="flex items-center justify-between bg-background px-4 py-3.5">
+                <div>
+                  <div className="h-3.5 w-20 animate-pulse rounded-[3px] bg-border" />
+                  <div className="mt-1 h-3 w-48 animate-pulse rounded-[3px] bg-border" />
+                </div>
+                <div className="h-8 w-28 animate-pulse rounded-[6px] bg-border" />
+              </div>
+            </div>
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -78,7 +109,7 @@ export default function AccountSettingsPage() {
             className="h-20 w-20 rounded-full object-cover ring-2 ring-primary/20"
           />
         ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary-ghost text-primary">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary-ghost text-primary-text">
             <svg className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
             </svg>
@@ -132,7 +163,7 @@ export default function AccountSettingsPage() {
               <p className="text-[12px] text-error">เกิดข้อผิดพลาด ลองใหม่อีกครั้ง</p>
             )}
             {saveState === "saved" && (
-              <p className="text-[12px] text-primary">บันทึกเรียบร้อยแล้ว</p>
+              <p className="text-[12px] text-primary-text">บันทึกเรียบร้อยแล้ว</p>
             )}
             {(saveState === "idle" || saveState === "saving") && <span />}
             <button
@@ -173,7 +204,7 @@ export default function AccountSettingsPage() {
               </button>
             </div>
             {resetState === "sent" && (
-              <p className="mt-2 text-[12px] text-primary">
+              <p className="mt-2 text-[12px] text-primary-text">
                 ตรวจสอบอีเมลของคุณเพื่อรีเซ็ตรหัสผ่าน
               </p>
             )}

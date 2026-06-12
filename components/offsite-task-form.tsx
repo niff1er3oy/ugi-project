@@ -130,7 +130,7 @@ function WorkPhotoPicker({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-[8px] border border-dashed border-border text-muted transition-colors hover:border-primary hover:text-primary"
+            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-[8px] border border-dashed border-border text-muted transition-colors hover:border-primary hover:text-primary-text"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -320,9 +320,10 @@ export default function OffsiteTaskForm({
                 key={s}
                 type="button"
                 onClick={() => handleStatusChange(s)}
+                aria-pressed={active}
                 className={`flex items-center justify-center gap-1.5 rounded-[8px] border py-2.5 text-[12px] font-medium transition-colors ${
                   active
-                    ? "border-primary bg-primary/5 text-primary"
+                    ? "border-primary bg-primary/5 text-primary-text"
                     : "border-border text-muted hover:border-border-strong hover:text-ink"
                 }`}
               >
@@ -379,15 +380,17 @@ export default function OffsiteTaskForm({
       </FormSection>
 
       {/* รายละเอียดงาน */}
-      <FormSection label="รายละเอียดงาน">
+      <div>
+        <label htmlFor="task-note" className="mb-3 block text-[12px] font-semibold text-muted">รายละเอียดงาน</label>
         <textarea
+          id="task-note"
           className="field-input min-h-[80px] resize-none"
           value={form.note ?? ""}
           onChange={(e) => set("note", e.target.value || undefined)}
           placeholder="อธิบายรายละเอียดงาน หมายเหตุ หรือสิ่งที่พบ..."
           rows={3}
         />
-      </FormSection>
+      </div>
 
       {/* รูปภาพการปฏิบัติงาน */}
       <FormSection label="รูปภาพการปฏิบัติงาน">

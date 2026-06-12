@@ -109,7 +109,7 @@ export default function RegisterPage() {
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-12 bg-background">
         <div className="w-full max-w-[420px] animate-enter">
           <div className="lg:hidden mb-10">
-            <span className="text-primary text-[32px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+            <span className="text-primary-text text-[32px] font-bold tracking-[-0.03em] leading-none">UGI</span>
           </div>
 
           <h1
@@ -252,7 +252,7 @@ export default function RegisterPage() {
             </div>
 
             {error && (
-              <p key={error} className="animate-shake text-[13px] text-error leading-[1.45]">{error}</p>
+              <p key={error} role="alert" className="animate-shake text-[13px] text-error leading-[1.45]">{error}</p>
             )}
 
             <button
@@ -268,7 +268,7 @@ export default function RegisterPage() {
 
           <p className="mt-7 text-center text-[13px] text-muted">
             มีบัญชีอยู่แล้ว?{" "}
-            <Link href="/login" className="font-medium text-primary hover:underline">เข้าสู่ระบบ</Link>
+            <Link href="/login" className="font-medium text-primary-text hover:underline">เข้าสู่ระบบ</Link>
           </p>
         </div>
       </main>

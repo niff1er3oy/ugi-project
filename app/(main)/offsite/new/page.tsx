@@ -20,7 +20,6 @@ export default function OffsiteNewPage() {
 
   function handleSubmit(data: OffsiteTaskFormData) {
     // TODO: save to Firestore
-    console.log("new task", data);
     router.back();
   }
 

@@ -21,16 +21,6 @@ type Notification = {
 
 const mockNotifications: Notification[] = [
   {
-    id: "1",
-    type: "warning",
-    category: "เอกสารรับรอง",
-    title: "ใบรับรองใกล้หมดอายุ",
-    message: "ใบรับรองความปลอดภัยของ นายสมชาย ใจดี จะหมดอายุใน 7 วัน",
-    time: "10 นาทีที่แล้ว",
-    read: false,
-    href: "/certificates",
-  },
-  {
     id: "2",
     type: "warning",
     category: "การอบรม",
@@ -51,16 +41,6 @@ const mockNotifications: Notification[] = [
     href: "/employees",
   },
   {
-    id: "4",
-    type: "error",
-    category: "ความปลอดภัย",
-    title: "บันทึกอุบัติเหตุใหม่",
-    message: "มีรายงานอุบัติเหตุเล็กน้อยในพื้นที่คลังสินค้า B รอการตรวจสอบ",
-    time: "เมื่อวาน",
-    read: true,
-    href: "/safety",
-  },
-  {
     id: "5",
     type: "info",
     category: "รายงาน",
@@ -69,16 +49,6 @@ const mockNotifications: Notification[] = [
     time: "เมื่อวาน",
     read: true,
     href: "/reports",
-  },
-  {
-    id: "6",
-    type: "warning",
-    category: "เอกสารรับรอง",
-    title: "ใบรับรองหมดอายุแล้ว",
-    message: "ใบอนุญาตขับรถยกของ นายวิชัย มั่นคง หมดอายุเมื่อ 2 วันที่แล้ว",
-    time: "2 วันที่แล้ว",
-    read: true,
-    href: "/certificates",
   },
   {
     id: "7",
@@ -105,7 +75,7 @@ const typeConfig = {
   },
   info: {
     bg: "bg-primary-ghost",
-    text: "text-primary",
+    text: "text-primary-text",
     dot: "bg-primary",
     icon: (
       <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
@@ -214,7 +184,7 @@ export default function NotificationsPage() {
           unread.length > 0 ? (
             <button
               onClick={markAllRead}
-              className="text-[13px] font-medium text-primary transition-colors duration-150 hover:text-primary-deep"
+              className="text-[13px] font-medium text-primary-text transition-colors duration-150 hover:text-primary-deep"
             >
               อ่านทั้งหมด
             </button>
@@ -316,7 +286,7 @@ function NotificationItem({
         </div>
 
         <svg
-          className="mt-1 h-3.5 w-3.5 shrink-0 text-border-strong transition-[color,transform] duration-150 group-hover:text-primary group-hover:translate-x-[2px]"
+          className="mt-1 h-3.5 w-3.5 shrink-0 text-border-strong transition-[color,transform] duration-150 group-hover:text-primary-text group-hover:translate-x-[2px]"
           viewBox="0 0 16 16"
           fill="none"
           aria-hidden="true"

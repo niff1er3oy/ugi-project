@@ -24,7 +24,6 @@ export default function EditEmployeePage() {
 
   function handleSubmit(data: EmployeeFormData) {
     // TODO: update in Firestore, then navigate
-    console.log("update employee:", params.id, data);
     router.back();
   }
 

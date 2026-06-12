@@ -89,7 +89,7 @@ export default function BottomNav() {
               <Link
                 href={item.href}
                 className={`flex h-full flex-col items-center justify-center gap-[3px] transition-colors duration-150 ${
-                  active ? "text-primary" : "text-muted hover:text-ink"
+                  active ? "text-primary-text" : "text-muted hover:text-ink"
                 }`}
                 aria-current={active ? "page" : undefined}
               >

@@ -96,7 +96,7 @@ export default function LoginPage() {
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-12 bg-background">
         <div className="w-full max-w-[400px] animate-enter">
           <div className="lg:hidden mb-12">
-            <span className="text-primary text-[32px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+            <span className="text-primary-text text-[32px] font-bold tracking-[-0.03em] leading-none">UGI</span>
           </div>
           <h1 className="text-[26px] font-semibold text-ink tracking-[-0.01em] leading-[1.2] mb-9" style={{ textWrap: "balance" } as React.CSSProperties}>เข้าสู่ระบบ</h1>
           <form onSubmit={handleEmailLogin} className="flex flex-col gap-6">
@@ -108,7 +108,7 @@ export default function LoginPage() {
               <label htmlFor="password" className="text-[13.5px] font-medium text-ink leading-none">รหัสผ่าน</label>
               <input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} className="field-input" style={{ padding: "10px 14px", fontSize: "15px" }} placeholder="••••••••" />
             </div>
-            {error && <p key={error} className="animate-shake text-[13px] text-error leading-[1.45]">{error}</p>}
+            {error && <p key={error} role="alert" className="animate-shake text-[13px] text-error leading-[1.45]">{error}</p>}
             <button type="submit" disabled={loading} className="w-full rounded-[6px] bg-primary px-4 py-[11px] text-[15px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-primary-deep active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed">
               {loading ? <span className="flex items-center justify-center gap-2"><span className="h-[14px] w-[14px] rounded-full border-2 border-white/30 border-t-white animate-spin" />กำลังเข้าสู่ระบบ…</span> : "เข้าสู่ระบบ"}
             </button>
@@ -121,7 +121,7 @@ export default function LoginPage() {
           </button>
           <p className="mt-7 text-center text-[13px] text-muted">
             ยังไม่มีบัญชี?{" "}
-            <Link href="/register" className="font-medium text-primary hover:underline">สมัครใหม่</Link>
+            <Link href="/register" className="font-medium text-primary-text hover:underline">สมัครใหม่</Link>
           </p>
         </div>
       </main>

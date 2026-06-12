@@ -24,7 +24,6 @@ export default function OffsiteEditPage() {
 
   function handleSubmit(data: OffsiteTaskFormData) {
     // TODO: update in Firestore
-    console.log("update task", params.id, data);
     router.back();
   }
 

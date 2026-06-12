@@ -7,9 +7,7 @@ import { auth } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
 
 type NotifSettings = {
-  certificates: boolean;
   training: boolean;
-  safety: boolean;
   reports: boolean;
 };
 
@@ -18,9 +16,7 @@ export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const [notif, setNotif] = useState<NotifSettings>({
-    certificates: true,
     training: true,
-    safety: true,
     reports: false,
   });
 
@@ -63,7 +59,7 @@ export default function SettingsPage() {
           <div className="mb-6" aria-hidden="true">
             <div className="mb-2 h-4 w-24 animate-pulse rounded-[3px] bg-border" />
             <div className="overflow-hidden rounded-[12px] border border-border divide-y divide-border">
-              {Array.from({ length: 4 }).map((_, i) => (
+              {Array.from({ length: 2 }).map((_, i) => (
                 <div key={i} className="flex items-center justify-between bg-background px-4 py-3.5">
                   <div>
                     <div className="h-3.5 w-40 animate-pulse rounded-[3px] bg-border" />
@@ -113,7 +109,7 @@ export default function SettingsPage() {
                   className="h-10 w-10 rounded-full object-cover ring-1 ring-primary/20"
                 />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-ghost text-primary shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-ghost text-primary-text shrink-0">
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                   </svg>
@@ -133,24 +129,10 @@ export default function SettingsPage() {
       {/* Notifications */}
       <Section label="การแจ้งเตือน" delay={80}>
         <SettingRow
-          label="ใบรับรองใกล้หมดอายุ"
-          description="แจ้งเตือนเมื่อเอกสารจะหมดอายุภายใน 30 วัน"
-        >
-          <Toggle checked={notif.certificates} onChange={() => toggleNotif("certificates")} />
-        </SettingRow>
-        <Divider />
-        <SettingRow
           label="การอบรมค้างชำระ"
           description="แจ้งเตือนเมื่อมีพนักงานที่ยังไม่ผ่านการอบรม"
         >
           <Toggle checked={notif.training} onChange={() => toggleNotif("training")} />
-        </SettingRow>
-        <Divider />
-        <SettingRow
-          label="เหตุการณ์ความปลอดภัย"
-          description="แจ้งเตือนทันทีเมื่อมีการบันทึกอุบัติเหตุ"
-        >
-          <Toggle checked={notif.safety} onChange={() => toggleNotif("safety")} />
         </SettingRow>
         <Divider />
         <SettingRow
@@ -246,7 +228,7 @@ function LinkRow({ label, href }: { label: React.ReactNode; href: string }) {
     >
       <div className="min-w-0 flex-1">{typeof label === "string" ? <p className="text-[14px] font-medium text-ink">{label}</p> : label}</div>
       <svg
-        className="h-3.5 w-3.5 text-border-strong transition-[color,transform] duration-150 group-hover:text-primary group-hover:translate-x-[2px]"
+        className="h-3.5 w-3.5 text-border-strong transition-[color,transform] duration-150 group-hover:text-primary-text group-hover:translate-x-[2px]"
         viewBox="0 0 16 16"
         fill="none"
         aria-hidden="true"
