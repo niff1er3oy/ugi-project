@@ -12,6 +12,7 @@ export type Employee = {
   phone: string;
   email: string;
   startDate: string;
+  photoURL?: string;
 };
 
 // ── Config ─────────────────────────────────────────────────────
@@ -30,6 +31,18 @@ export const STATUS_CONFIG: Record<EmpStatus, { label: string; dot: string; bg: 
 };
 
 export const DEPARTMENTS = Object.keys(DEPT_CONFIG);
+
+export const COMPANIES = [
+  "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",
+  "บริษัท UGI จำกัด (มหาชน)",
+  "บริษัท UGI เซอร์วิสเซส จำกัด",
+];
+
+export const COMPANY_DEPARTMENTS: Record<string, string[]> = {
+  "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด":  ["ฝ่ายผลิต", "ฝ่ายวิศวกรรม"],
+  "บริษัท UGI จำกัด (มหาชน)":           ["ฝ่าย HR", "ฝ่ายบัญชี"],
+  "บริษัท UGI เซอร์วิสเซส จำกัด":       ["ฝ่ายความปลอดภัย"],
+};
 
 // ── Mock data ──────────────────────────────────────────────────
 export const EMPLOYEES: Employee[] = [

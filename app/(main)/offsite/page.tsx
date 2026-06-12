@@ -5,230 +5,64 @@ import { useEffect, useState, useMemo } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
+import { Section, InfoRow } from "@/components/detail-section";
 import { DepartmentChip } from "@/components/department-chip";
-
-// ── Types ──────────────────────────────────────────────────────
-type WorkType = "ซ่อมบำรุง" | "ติดตั้ง" | "ตรวจสอบ" | "อื่นๆ";
-type WorkStatus = "pending" | "in_progress" | "completed" | "cancelled";
-
-type OffsiteTask = {
-  id: string;
-  title: string;
-  type: WorkType;
-  status: WorkStatus;
-  date: string;
-  time: string;
-  department: string;
-  location: string;
-  note: string;
-};
-
-// ── Config ─────────────────────────────────────────────────────
-const STATUS_CONFIG: Record<WorkStatus, { label: string; bg: string; text: string; ring: string; dot: string }> = {
-  pending:     { label: "รอดำเนินการ",    bg: "bg-accent-pale",                   text: "text-accent-text",             ring: "ring-accent/30",   dot: "oklch(0.72 0.14 75)"  },
-  in_progress: { label: "กำลังดำเนินการ", bg: "bg-primary-ghost",                 text: "text-primary",                 ring: "ring-primary/20",  dot: "oklch(0.44 0.27 292)" },
-  completed:   { label: "เสร็จแล้ว",      bg: "bg-success-pale",                  text: "text-success-text",            ring: "ring-[oklch(0.52_0.16_145)]/20", dot: "oklch(0.52 0.16 145)" },
-  cancelled:   { label: "ถูกยกเลิก",      bg: "bg-error-pale",                   text: "text-error",                   ring: "ring-error/20",    dot: "oklch(0.50 0.17 25)"  },
-};
-
-const TYPE_CONFIG: Record<WorkType, { color: string; lightBg: string; iconPath: string }> = {
-  "ซ่อมบำรุง": {
-    color: "oklch(0.62 0.14 75)",
-    lightBg: "oklch(0.95 0.04 75)",
-    iconPath: "M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z",
-  },
-  "ติดตั้ง": {
-    color: "oklch(0.44 0.27 292)",
-    lightBg: "oklch(0.94 0.055 292)",
-    iconPath: "M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21",
-  },
-  "ตรวจสอบ": {
-    color: "oklch(0.42 0.14 195)",
-    lightBg: "oklch(0.93 0.04 195)",
-    iconPath: "m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6",
-  },
-  "อื่นๆ": {
-    color: "oklch(0.50 0.05 292)",
-    lightBg: "oklch(0.96 0.01 292)",
-    iconPath: "M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z",
-  },
-};
-
-// ── Mock data ──────────────────────────────────────────────────
-const ALL_TASKS: OffsiteTask[] = [
-  {
-    id: "WO-001",
-    title: "ซ่อมท่อน้ำรั่วบริเวณอาคาร A ชั้น 3",
-    type: "ซ่อมบำรุง",
-    status: "completed",
-    date: "12 มิ.ย. 2568",
-    time: "09:00",
-    department: "ฝ่ายผลิต",
-    location: "อาคาร A ชั้น 3",
-    note: "ท่อน้ำแตกในห้องน้ำชาย ซ่อมเสร็จก่อนกำหนด",
-  },
-  {
-    id: "WO-002",
-    title: "ติดตั้งระบบกล้องวงจรปิดคลังสินค้า B",
-    type: "ติดตั้ง",
-    status: "in_progress",
-    date: "11 มิ.ย. 2568",
-    time: "13:00",
-    department: "ฝ่ายวิศวกรรม",
-    location: "คลังสินค้า B",
-    note: "ติดตั้งแล้ว 6 จาก 12 จุด คาดเสร็จวันที่ 14 มิ.ย.",
-  },
-  {
-    id: "WO-003",
-    title: "ตรวจสอบระบบไฟฟ้าประจำเดือนมิถุนายน",
-    type: "ตรวจสอบ",
-    status: "completed",
-    date: "10 มิ.ย. 2568",
-    time: "08:00",
-    department: "ฝ่ายความปลอดภัย",
-    location: "โรงงานหลัก",
-    note: "ผ่านมาตรฐานทุกจุด ไม่พบความผิดปกติ",
-  },
-  {
-    id: "WO-004",
-    title: "ซ่อมแซมหลังคารั่วอาคาร C",
-    type: "ซ่อมบำรุง",
-    status: "pending",
-    date: "14 มิ.ย. 2568",
-    time: "07:30",
-    department: "ฝ่ายผลิต",
-    location: "อาคาร C หลังคาชั้น 5",
-    note: "รอช่างผู้รับเหมาภายนอกมาประเมินงาน",
-  },
-  {
-    id: "WO-005",
-    title: "ติดตั้งระบบปรับอากาศห้องประชุมใหญ่",
-    type: "ติดตั้ง",
-    status: "in_progress",
-    date: "9 มิ.ย. 2568",
-    time: "08:30",
-    department: "ฝ่ายวิศวกรรม",
-    location: "ห้องประชุมใหญ่ อาคาร B",
-    note: "วางท่อลม 80% เหลือเชื่อมต่อไฟฟ้าและทดสอบระบบ",
-  },
-  {
-    id: "WO-006",
-    title: "ตรวจสอบระบบดับเพลิงอาคาร D",
-    type: "ตรวจสอบ",
-    status: "cancelled",
-    date: "8 มิ.ย. 2568",
-    time: "10:00",
-    department: "ฝ่ายความปลอดภัย",
-    location: "อาคาร D ทุกชั้น",
-    note: "ยกเลิกเนื่องจากอาคารปิดปรับปรุง เลื่อนไปเดือน ก.ค.",
-  },
-  {
-    id: "WO-007",
-    title: "ซ่อมลิฟต์โดยสารอาคาร A",
-    type: "ซ่อมบำรุง",
-    status: "pending",
-    date: "15 มิ.ย. 2568",
-    time: "09:00",
-    department: "ฝ่ายวิศวกรรม",
-    location: "อาคาร A ลิฟต์หมายเลข 2",
-    note: "รอชิ้นส่วนอะไหล่จากต่างประเทศ",
-  },
-  {
-    id: "WO-008",
-    title: "ทาสีรั้วและพื้นที่ลานจอดรถ",
-    type: "อื่นๆ",
-    status: "in_progress",
-    date: "7 มิ.ย. 2568",
-    time: "06:00",
-    department: "ฝ่ายผลิต",
-    location: "ลานจอดรถอาคาร A-B",
-    note: "ทาเสร็จแล้ว 2 โซน เหลืออีก 1 โซน",
-  },
-  {
-    id: "WO-009",
-    title: "ตรวจสอบท่อระบายน้ำลานด้านหลัง",
-    type: "ตรวจสอบ",
-    status: "completed",
-    date: "5 มิ.ย. 2568",
-    time: "13:30",
-    department: "ฝ่ายความปลอดภัย",
-    location: "ลานด้านหลังโรงงาน",
-    note: "พบตะกอนอุดตัน 2 จุด แนะนำล้างทำความสะอาดทุก 3 เดือน",
-  },
-  {
-    id: "WO-010",
-    title: "ซ่อมประตูโรลลิ่งโกดังคลังสินค้า A",
-    type: "ซ่อมบำรุง",
-    status: "completed",
-    date: "3 มิ.ย. 2568",
-    time: "11:00",
-    department: "ฝ่ายวิศวกรรม",
-    location: "คลังสินค้า A ประตูหมายเลข 3",
-    note: "เปลี่ยนสปริงและระบบล็อค ทดสอบเรียบร้อย",
-  },
-];
-
-const STATUS_FILTER_OPTIONS: { value: WorkStatus | "all"; label: string }[] = [
-  { value: "all",         label: "ทั้งหมด" },
-  { value: "in_progress", label: "กำลังดำเนินการ" },
-  { value: "pending",     label: "รอดำเนินการ" },
-  { value: "completed",   label: "เสร็จแล้ว" },
-  { value: "cancelled",   label: "ถูกยกเลิก" },
-];
-
-const TYPE_FILTER_OPTIONS: { value: WorkType | "all"; label: string }[] = [
-  { value: "all",       label: "ทุกประเภท" },
-  { value: "ซ่อมบำรุง", label: "ซ่อมบำรุง" },
-  { value: "ติดตั้ง",   label: "ติดตั้ง" },
-  { value: "ตรวจสอบ",   label: "ตรวจสอบ" },
-  { value: "อื่นๆ",     label: "อื่นๆ" },
-];
+import {
+  ALL_TASKS, STATUS_CONFIG, TYPE_CONFIG,
+  STATUS_FILTER_OPTIONS, TYPE_FILTER_OPTIONS,
+  type WorkType, type WorkStatus, type OffsiteTask,
+} from "@/lib/offsite-tasks";
+import OffsiteTaskForm, { type OffsiteTaskFormData } from "@/components/offsite-task-form";
 
 // ── Sub-components ─────────────────────────────────────────────
-function TaskCard({ task, index }: { task: OffsiteTask; index: number }) {
+function TaskTypeIcon({ type, photoURL, size = 40 }: { type: WorkType; photoURL?: string; size?: number }) {
+  const cfg = TYPE_CONFIG[type];
+  const radius = size >= 48 ? "rounded-[14px]" : "rounded-[10px]";
+  if (photoURL) {
+    return (
+      <div className={`shrink-0 overflow-hidden ${radius}`} style={{ width: size, height: size }}>
+        <img src={photoURL} alt="" className="h-full w-full object-cover" />
+      </div>
+    );
+  }
+  return (
+    <div
+      className={`shrink-0 flex items-center justify-center ${radius}`}
+      style={{ width: size, height: size, backgroundColor: cfg.lightBg }}
+    >
+      <svg className="h-5 w-5" fill="none" stroke={cfg.color} strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d={cfg.iconPath} />
+      </svg>
+    </div>
+  );
+}
+
+function TaskCard({ task, index, onSelect }: { task: OffsiteTask; index: number; onSelect: (id: string) => void }) {
+  const router = useRouter();
   const status = STATUS_CONFIG[task.status];
   const type = TYPE_CONFIG[task.type];
 
   return (
     <div
+      onClick={() => {
+        if (window.innerWidth >= 1024) onSelect(task.id);
+        else router.push(`/offsite/${task.id}`);
+      }}
       className="rounded-[12px] border border-border bg-background transition-shadow duration-150 hover:shadow-sm cursor-pointer animate-enter-stagger"
       style={{ "--i": index } as React.CSSProperties}
     >
-      {/* Card top bar: type icon + title + status */}
       <div className="flex items-start gap-3 px-4 pt-4">
-        {/* Type icon */}
-        <div
-          className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]"
-          style={{ backgroundColor: type.lightBg }}
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke={type.color}
-            strokeWidth={1.5}
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d={type.iconPath} />
-          </svg>
-        </div>
-
-        {/* Title + type + status */}
+        <TaskTypeIcon type={task.type} photoURL={task.photoURL} />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className="text-[14px] font-semibold text-ink leading-snug">{task.title}</p>
-            <span
-              className={`mt-0.5 shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${status.bg} ${status.text}`}
-            >
+            <span className={`mt-0.5 shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${status.bg} ${status.text}`}>
               {status.label}
             </span>
           </div>
           <div className="mt-1 flex items-center gap-2">
             <span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: type.color }}>
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: type.color }}
-              />
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: type.color }} />
               {task.type}
             </span>
             <span className="text-border-strong">·</span>
@@ -237,23 +71,18 @@ function TaskCard({ task, index }: { task: OffsiteTask; index: number }) {
         </div>
       </div>
 
-      {/* Note */}
       {task.note && (
-        <p className="mx-4 mt-2.5 text-[12px] text-muted leading-relaxed line-clamp-2">
-          {task.note}
-        </p>
+        <p className="mx-4 mt-2.5 text-[12px] text-muted leading-relaxed line-clamp-2">{task.note}</p>
       )}
 
-      {/* Divider */}
       <div className="mx-4 mt-3.5 border-t border-border" />
 
-      {/* Meta row */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3">
         <span className="flex items-center gap-1.5 text-[12px] text-muted">
           <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
           </svg>
-          {task.date} · {task.time}
+          {task.startDate} · {task.startTime}
         </span>
         <span className="flex items-center gap-1.5 text-[12px] text-muted">
           <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
@@ -267,6 +96,207 @@ function TaskCard({ task, index }: { task: OffsiteTask; index: number }) {
   );
 }
 
+// ── Detail panel ───────────────────────────────────────────────
+function OffsiteDetailPanel({ task, onClose, onEdit }: { task: OffsiteTask; onClose: () => void; onEdit: () => void }) {
+  const status = STATUS_CONFIG[task.status];
+  const type = TYPE_CONFIG[task.type];
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  return (
+    <div className="px-6 py-6 animate-enter">
+      {/* Top row: status + close */}
+      <div className="mb-5 flex items-center justify-between">
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${status.bg} ${status.text}`}>
+          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: status.dot }} />
+          {status.label}
+        </span>
+        <button
+          onClick={onClose}
+          aria-label="ปิด"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Title + type */}
+      <div className="mb-6 flex gap-4">
+        <TaskTypeIcon type={task.type} size={48} />
+        <div className="min-w-0">
+          <h2 className="text-[17px] font-semibold text-ink leading-snug">{task.title}</h2>
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-[12px] font-medium" style={{ color: type.color }}>{task.type}</span>
+            <span className="text-border-strong">·</span>
+            <span className="font-mono text-[11px] text-muted">{task.id}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="space-y-5">
+        <Section label="ข้อมูลงาน">
+          <InfoRow label="เริ่มต้น"   value={`${task.startDate} · ${task.startTime}`} />
+          {task.endDate && (
+            <InfoRow label="สิ้นสุด" value={`${task.endDate} · ${task.endTime}`} />
+          )}
+          <InfoRow label="สถานที่"    value={task.location} />
+          <InfoRow label="ทีม"        value={<DepartmentChip name={task.department} />} />
+          <InfoRow label="ประเภทงาน"  value={
+            <span className="text-[12px] font-medium" style={{ color: TYPE_CONFIG[task.type].color }}>{task.type}</span>
+          } />
+          <InfoRow label="รหัสงาน"    value={<span className="font-mono text-[12px]">{task.id}</span>} />
+        </Section>
+
+        {task.note && (
+          <Section label="รายละเอียดงาน">
+            <p className="px-4 py-3 text-[13px] text-ink leading-relaxed">{task.note}</p>
+          </Section>
+        )}
+
+        {task.workPhotos && task.workPhotos.length > 0 && (
+          <Section label={`รูปภาพการปฏิบัติงาน (${task.workPhotos.length}/5)`}>
+            <div className={`grid gap-2 p-3 ${task.workPhotos.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+              {task.workPhotos.map((url, i) => (
+                <div
+                  key={i}
+                  className={`aspect-square overflow-hidden rounded-[8px] bg-surface ${
+                    (task.workPhotos!.length === 3 && i === 0) || (task.workPhotos!.length === 5 && i === 4)
+                      ? "col-span-2"
+                      : ""
+                  }`}
+                >
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="mt-6 flex gap-2">
+        <button
+          onClick={onEdit}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] border border-border bg-background py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-[0.98]"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+          </svg>
+          แก้ไข
+        </button>
+      </div>
+
+      {/* Delete */}
+      <div className="mt-3">
+        {!showDeleteConfirm ? (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-[12px] border border-error/30 bg-error-pale px-4 py-3 text-[13px] font-medium text-error transition-colors hover:bg-error/10 active:scale-[0.99]"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+            </svg>
+            ลบงานนี้
+          </button>
+        ) : (
+          <div className="animate-enter rounded-[12px] border border-error/40 bg-error-pale px-4 py-4">
+            <p className="text-center text-[13px] font-semibold text-error">ยืนยันการลบ?</p>
+            <p className="mt-0.5 text-center text-[12px] text-muted">การกระทำนี้ไม่สามารถยกเลิกได้</p>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 rounded-[8px] border border-border bg-background py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-[0.98]"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 rounded-[8px] bg-error py-2.5 text-[13px] font-medium text-white transition-colors hover:opacity-90 active:scale-[0.98]"
+              >
+                ยืนยันลบ
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OffsiteEditPanel({ task, onDone }: { task: OffsiteTask; onDone: () => void }) {
+  function handleSubmit(data: OffsiteTaskFormData) {
+    console.log("update task", task.id, data);
+    onDone();
+  }
+  return (
+    <div className="px-6 py-6 pb-10 animate-enter">
+      <div className="mb-5 flex items-center justify-between">
+        <p className="text-[13px] font-semibold text-ink">แก้ไขงาน</p>
+        <button
+          onClick={onDone}
+          aria-label="ปิด"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <OffsiteTaskForm
+        defaultValues={task}
+        taskId={task.id}
+        submitLabel="บันทึกการเปลี่ยนแปลง"
+        onSubmit={handleSubmit}
+        onCancel={onDone}
+      />
+    </div>
+  );
+}
+
+function OffsiteAddPanel({ onDone }: { onDone: () => void }) {
+  function handleSubmit(data: OffsiteTaskFormData) {
+    console.log("new task", data);
+    onDone();
+  }
+  return (
+    <div className="px-6 py-6 pb-10 animate-enter">
+      <div className="mb-5 flex items-center justify-between">
+        <p className="text-[13px] font-semibold text-ink">สร้างงานใหม่</p>
+        <button
+          onClick={onDone}
+          aria-label="ปิด"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <OffsiteTaskForm
+        submitLabel="สร้างงาน"
+        onSubmit={handleSubmit}
+        onCancel={onDone}
+      />
+    </div>
+  );
+}
+
+function DetailEmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 text-center px-6">
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface">
+        <svg className="h-6 w-6 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
+        </svg>
+      </div>
+      <p className="text-[14px] font-medium text-ink">เลือกงาน</p>
+      <p className="mt-1 text-[12px] text-muted">เพื่อดูรายละเอียด</p>
+    </div>
+  );
+}
+
 // ── Page ───────────────────────────────────────────────────────
 export default function OfsitePage() {
   const router = useRouter();
@@ -274,6 +304,8 @@ export default function OfsitePage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<WorkStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<WorkType | "all">("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [panelMode, setPanelMode] = useState<"detail" | "edit" | "add">("detail");
 
   useEffect(() => {
     return onAuthStateChanged(auth, (user) => {
@@ -288,43 +320,29 @@ export default function OfsitePage() {
       if (statusFilter !== "all" && t.status !== statusFilter) return false;
       if (typeFilter !== "all" && t.type !== typeFilter) return false;
       if (q) {
-        const haystack = [t.title, t.location, t.id, t.department, t.note].join(" ").toLowerCase();
-        if (!haystack.includes(q)) return false;
+        const hay = [t.title, t.location, t.id, t.department, t.note ?? "", t.type].join(" ").toLowerCase();
+        if (!hay.includes(q)) return false;
       }
       return true;
     });
   }, [search, statusFilter, typeFilter]);
 
-
-  const headerRight = (
-    <button className="flex items-center gap-1.5 rounded-[6px] bg-primary px-3 py-1.5 text-[12px] font-semibold text-white transition-colors duration-150 hover:bg-primary-deep active:scale-95">
-      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-      สร้างงาน
-    </button>
-  );
+  const hasFilter = search || statusFilter !== "all" || typeFilter !== "all";
 
   if (!ready) {
     return (
       <>
         <Navbar title="ปฏิบัติงานนอกสถานที่" back={false} />
         <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md" aria-hidden="true">
-          <div className="px-4 pt-3 pb-2.5">
+          <div className="space-y-2.5 px-4 pt-3 pb-3">
             <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
-          </div>
-          <div className="flex gap-1.5 overflow-x-hidden px-4 pb-3">
-            {[72, 120, 88, 72, 88].map((w, i) => (
-              <div key={i} className="h-11 shrink-0 animate-pulse rounded-full bg-border" style={{ width: w }} />
-            ))}
-          </div>
-          <div className="flex gap-1.5 overflow-x-hidden px-4 pb-3">
-            {[72, 80, 72, 56].map((w, i) => (
-              <div key={i} className="h-11 shrink-0 animate-pulse rounded-full bg-border" style={{ width: w }} />
-            ))}
+            <div className="flex gap-2">
+              <div className="h-9 flex-1 animate-pulse rounded-[6px] bg-border" />
+              <div className="h-9 flex-1 animate-pulse rounded-[6px] bg-border" />
+            </div>
           </div>
         </div>
-        <main className="mx-auto w-full max-w-5xl px-4 py-4" aria-busy="true" aria-label="กำลังโหลด">
+        <main className="w-full px-4 py-4" aria-busy="true" aria-label="กำลังโหลด">
           <div className="mb-3 h-4 w-10 animate-pulse rounded-[3px] bg-border" aria-hidden="true" />
           <div className="space-y-3" aria-hidden="true">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -359,132 +377,145 @@ export default function OfsitePage() {
 
   return (
     <>
-      <Navbar title="ปฏิบัติงานนอกสถานที่" back={false} right={headerRight} />
+      <Navbar
+        title="ปฏิบัติงานนอกสถานที่"
+        back={false}
+        right={
+          <button
+            onClick={() => {
+              if (window.innerWidth >= 1024) {
+                setSelectedId(null);
+                setPanelMode("add");
+              } else {
+                router.push("/offsite/new");
+              }
+            }}
+            className="flex items-center gap-1.5 rounded-[6px] bg-primary px-3 py-1.5 text-[12px] font-semibold text-white transition-colors duration-150 hover:bg-primary-deep active:scale-95"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            สร้างงาน
+          </button>
+        }
+      />
 
-      {/* Sticky search + filter bar */}
-      <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md">
-        {/* Search */}
-        <div className="px-4 pt-3 pb-2.5">
-          <div className="relative">
-            <input
-              type="search"
-              placeholder="ค้นหาชื่องาน สถานที่ ทีมงาน..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="field-input pr-9"
-            />
-            {search ? (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-border text-muted hover:bg-border-strong hover:text-ink"
-                aria-label="ล้างคำค้นหา"
-              >
-                <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
+      {/* Content — split 50/50 on desktop with independent scroll */}
+      <main className="w-full lg:flex lg:h-[calc(100vh-3.5rem)] lg:overflow-hidden">
+
+        {/* Left: filter + list (own scroll on desktop) */}
+        <div className="lg:flex lg:w-1/2 lg:flex-col lg:min-h-0 lg:border-r lg:border-border">
+
+          {/* Filter — sticky on mobile, static header on desktop */}
+          <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md lg:static lg:z-auto lg:shrink-0">
+            <div className="space-y-2.5 px-4 pt-3 pb-3">
+              <div className="relative">
+                <input
+                  type="search"
+                  placeholder="ค้นหาชื่องาน สถานที่ ทีม ประเภท..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="field-input pr-9"
+                />
+                {search ? (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-border text-muted hover:bg-border-strong hover:text-ink"
+                    aria-label="ล้างคำค้นหา"
+                  >
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                ) : (
+                  <svg className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                  </svg>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as WorkStatus | "all")}
+                  aria-label="กรองตามสถานะ"
+                  className="field-input flex-1"
+                >
+                  {STATUS_FILTER_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value as WorkType | "all")}
+                  aria-label="กรองตามประเภท"
+                  className="field-input flex-1"
+                >
+                  {TYPE_FILTER_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Task list — scrollable on desktop */}
+          <div className="px-4 py-4 lg:flex-1 lg:overflow-y-auto">
+            <div className="mb-3 flex items-center gap-2">
+              <p aria-live="polite" aria-atomic="true" className="text-[12px] text-muted animate-enter">
+                {filtered.length > 0 ? `${filtered.length} งาน` : "ไม่พบงานที่ตรงกัน"}
+              </p>
+              {hasFilter && (
+                <button
+                  onClick={() => { setSearch(""); setStatusFilter("all"); setTypeFilter("all"); }}
+                  className="text-[12px] text-primary hover:underline"
+                >
+                  ล้างตัวกรอง
+                </button>
+              )}
+            </div>
+
+            {filtered.length > 0 ? (
+              <div className="space-y-3">
+                {filtered.map((task, i) => (
+                  <TaskCard key={task.id} task={task} index={i} onSelect={(id) => { setSelectedId(id); setPanelMode("detail"); }} />
+                ))}
+              </div>
             ) : (
-              <svg className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-              </svg>
+              <div className="flex flex-col items-center py-20 text-center animate-enter">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface">
+                  <svg className="h-7 w-7 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                  </svg>
+                </div>
+                <p className="text-[15px] font-semibold text-ink">ไม่พบงานที่ตรงกัน</p>
+                <p className="mt-1 text-[13px] text-muted">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
+              </div>
             )}
           </div>
+
         </div>
 
-        {/* Status chips */}
-        <div
-          className="flex gap-1.5 overflow-x-auto px-4 pb-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          role="group"
-          aria-label="กรองตามสถานะ"
-        >
-          {STATUS_FILTER_OPTIONS.map((opt) => {
-            const active = statusFilter === opt.value;
+        {/* Right: detail / edit / add panel — desktop only, full-height scroll */}
+        <div className="hidden lg:flex lg:w-1/2 lg:min-h-0 lg:flex-col lg:overflow-y-auto">
+          {(() => {
+            if (panelMode === "add") {
+              return <OffsiteAddPanel onDone={() => setPanelMode("detail")} />;
+            }
+            const task = selectedId ? ALL_TASKS.find((t) => t.id === selectedId) : null;
+            if (!task) return <DetailEmptyState />;
+            if (panelMode === "edit") {
+              return <OffsiteEditPanel task={task} onDone={() => setPanelMode("detail")} />;
+            }
             return (
-              <button
-                key={opt.value}
-                onClick={() => setStatusFilter(opt.value)}
-                aria-pressed={active}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 min-h-[44px] ${
-                  active
-                    ? "border-primary bg-primary text-white"
-                    : "border-border bg-background text-muted hover:border-border-strong hover:text-ink"
-                }`}
-              >
-                {opt.value !== "all" && (
-                  <span
-                    className="h-1.5 w-1.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: active ? "white" : STATUS_CONFIG[opt.value as WorkStatus].dot }}
-                  />
-                )}
-                {opt.label}
-              </button>
+              <OffsiteDetailPanel
+                task={task}
+                onClose={() => setSelectedId(null)}
+                onEdit={() => setPanelMode("edit")}
+              />
             );
-          })}
+          })()}
         </div>
 
-        {/* Type chips */}
-        <div
-          className="flex gap-1.5 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          role="group"
-          aria-label="กรองตามประเภท"
-        >
-          {TYPE_FILTER_OPTIONS.map((opt) => {
-            const active = typeFilter === opt.value;
-            const tc = opt.value !== "all" ? TYPE_CONFIG[opt.value as WorkType] : null;
-            return (
-              <button
-                key={opt.value}
-                onClick={() => setTypeFilter(opt.value)}
-                aria-pressed={active}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 min-h-[44px] ${
-                  active
-                    ? "border-primary bg-primary text-white"
-                    : "border-border bg-background text-muted hover:border-border-strong hover:text-ink"
-                }`}
-              >
-                {active && tc && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/70" />}
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Content */}
-      <main className="mx-auto w-full max-w-5xl px-4 py-4">
-        {/* Result count */}
-        <div className="mb-3 flex items-center gap-2">
-          <p aria-live="polite" aria-atomic="true" className="text-[12px] text-muted animate-enter">
-            {filtered.length > 0 ? `${filtered.length} งาน` : search || statusFilter !== "all" || typeFilter !== "all" ? "ไม่พบงานที่ตรงกัน" : "ไม่มีงาน"}
-          </p>
-          {(search || statusFilter !== "all" || typeFilter !== "all") && (
-            <button
-              onClick={() => { setSearch(""); setStatusFilter("all"); setTypeFilter("all"); }}
-              className="text-[12px] text-primary hover:underline"
-            >
-              ล้างตัวกรอง
-            </button>
-          )}
-        </div>
-
-        {/* Cards */}
-        {filtered.length > 0 ? (
-          <div className="space-y-3">
-            {filtered.map((task, i) => (
-              <TaskCard key={task.id} task={task} index={i} />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center py-20 text-center animate-enter">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface">
-              <svg className="h-7 w-7 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-              </svg>
-            </div>
-            <p className="text-[15px] font-semibold text-ink">ไม่พบงานที่ตรงกัน</p>
-            <p className="mt-1 text-[13px] text-muted">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
-          </div>
-        )}
       </main>
     </>
   );

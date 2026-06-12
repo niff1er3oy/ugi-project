@@ -16,16 +16,24 @@ function Avatar({ emp, size = 80 }: { emp: Employee; size?: number }) {
 
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <div
-        className="flex h-full w-full items-center justify-center rounded-full font-bold ring-4 ring-background"
-        style={{
-          backgroundColor: dept?.bg ?? "var(--surface)",
-          color: dept?.color ?? "var(--muted)",
-          fontSize: size * 0.26,
-        }}
-      >
-        {initials}
-      </div>
+      {emp.photoURL ? (
+        <img
+          src={emp.photoURL}
+          alt={`${emp.firstName} ${emp.lastName}`}
+          className="h-full w-full rounded-full object-cover ring-4 ring-background"
+        />
+      ) : (
+        <div
+          className="flex h-full w-full items-center justify-center rounded-full font-bold ring-4 ring-background"
+          style={{
+            backgroundColor: dept?.bg ?? "var(--surface)",
+            color: dept?.color ?? "var(--muted)",
+            fontSize: size * 0.26,
+          }}
+        >
+          {initials}
+        </div>
+      )}
       <span
         className="absolute rounded-full border-2 border-background"
         style={{
@@ -43,6 +51,7 @@ export default function EmployeeDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const [ready, setReady] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     return onAuthStateChanged(auth, (user) => {
@@ -56,13 +65,21 @@ export default function EmployeeDetailPage() {
   const status = emp ? STATUS_CONFIG[emp.status] : null;
 
   const editButton = (
-    <button className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] font-medium text-ink transition-colors duration-150 hover:bg-surface active:scale-95">
+    <button
+      onClick={() => router.push(`/employees/${params.id}/edit`)}
+      className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] font-medium text-ink transition-colors duration-150 hover:bg-surface active:scale-95"
+    >
       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
       </svg>
       แก้ไข
     </button>
   );
+
+  function handleDelete() {
+    // TODO: delete from Firestore then navigate
+    router.back();
+  }
 
   if (!ready) {
     return (
@@ -205,6 +222,41 @@ export default function EmployeeDetailPage() {
           </Section>
 
         </div>
+
+        {/* ── ลบพนักงาน ──────────────────────────────────────── */}
+        <div className="mt-8">
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-[12px] border border-error/30 bg-error-pale px-4 py-3 text-[13px] font-medium text-error transition-colors duration-150 hover:bg-error/10 active:scale-[0.99]"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+              </svg>
+              ลบพนักงานนี้
+            </button>
+          ) : (
+            <div className="animate-enter rounded-[12px] border border-error/40 bg-error-pale px-4 py-4">
+              <p className="text-center text-[13px] font-semibold text-error">ยืนยันการลบ?</p>
+              <p className="mt-0.5 text-center text-[12px] text-muted">การกระทำนี้ไม่สามารถยกเลิกได้</p>
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 rounded-[8px] border border-border bg-background py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-[0.98]"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 rounded-[8px] bg-error py-2.5 text-[13px] font-medium text-white transition-colors hover:opacity-90 active:scale-[0.98]"
+                >
+                  ยืนยันลบ
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
       </main>
     </>
   );
