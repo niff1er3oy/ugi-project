@@ -30,9 +30,9 @@ function CompanyAvatar({ company, size = 48 }: { company: Company; size?: number
 
 function StatBadge({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex max-w-[72px] flex-col items-center">
       <span className="text-[18px] font-semibold leading-none tracking-[-0.02em] text-ink">{value}</span>
-      <span className="mt-1 text-[10px] text-muted">{label}</span>
+      <span className="mt-1 text-center text-[10px] leading-tight text-muted">{label}</span>
     </div>
   );
 }
@@ -134,9 +134,58 @@ export default function CompanyPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-64 flex-1 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-ghost border-t-primary" />
-      </div>
+      <>
+        <Navbar title="บริษัท" back={false} />
+        <main className="mx-auto w-full max-w-5xl px-4 py-5" aria-busy="true" aria-label="กำลังโหลด">
+          <div className="mb-5 flex gap-2 sm:gap-3" aria-hidden="true">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex flex-1 items-center gap-2 sm:gap-3 rounded-[12px] border border-border bg-background px-3 sm:px-4 py-3">
+                <div className="hidden sm:block h-9 w-9 shrink-0 animate-pulse rounded-[8px] bg-border" />
+                <div>
+                  <div className="h-5 w-7 animate-pulse rounded-[3px] bg-border" />
+                  <div className="mt-1 h-3 w-16 animate-pulse rounded-[3px] bg-border" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3" aria-hidden="true">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-[16px] border border-border bg-background p-5">
+                <div className="flex items-start gap-4">
+                  <div className="h-[52px] w-[52px] shrink-0 animate-pulse rounded-[12px] bg-border" />
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="h-4 w-28 animate-pulse rounded-[3px] bg-border" />
+                        <div className="mt-1 h-3 w-40 animate-pulse rounded-[3px] bg-border" />
+                      </div>
+                      <div className="h-5 w-16 animate-pulse rounded-full bg-border" />
+                    </div>
+                  </div>
+                </div>
+                <div className="my-4 border-t border-border" />
+                <div className="flex items-center justify-around">
+                  {Array.from({ length: 4 }).map((_, j) => (
+                    <div key={j} className="flex flex-col items-center gap-1">
+                      <div className="h-5 w-8 animate-pulse rounded-[3px] bg-border" />
+                      <div className="h-3 w-16 animate-pulse rounded-[3px] bg-border" />
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {[64, 80, 72].map((w, j) => (
+                    <div key={j} className="h-5 animate-pulse rounded-full bg-border" style={{ width: w }} />
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center gap-4">
+                  <div className="h-3.5 w-24 animate-pulse rounded-[3px] bg-border" />
+                  <div className="h-3.5 w-28 animate-pulse rounded-[3px] bg-border" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -155,43 +204,43 @@ export default function CompanyPage() {
         }
       />
 
-      <main className="mx-auto w-full max-w-2xl px-4 py-5">
+      <main className="mx-auto w-full max-w-5xl px-4 py-5">
 
         {/* ── Summary strip ──────────────────────────────────── */}
-        <div className="mb-5 flex gap-3 animate-enter">
-          <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-border bg-background px-4 py-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-primary-ghost">
+        <div className="mb-5 flex gap-2 sm:gap-3 animate-enter">
+          <div className="flex flex-1 items-center gap-2 sm:gap-3 rounded-[12px] border border-border bg-background px-3 sm:px-4 py-3">
+            <div className="hidden sm:flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-primary-ghost">
               <svg className="h-4.5 w-4.5 text-primary" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
               </svg>
             </div>
             <div>
-              <p className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{COMPANIES.length}</p>
-              <p className="mt-1 text-[11px] text-muted">บริษัทในเครือ</p>
+              <p className="text-[18px] sm:text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{COMPANIES.length}</p>
+              <p className="mt-1 text-[10px] sm:text-[11px] text-muted leading-tight">บริษัทในเครือ</p>
             </div>
           </div>
 
-          <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-border bg-background px-4 py-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-[oklch(0.93_0.06_145)]">
-              <svg className="h-4.5 w-4.5 text-[oklch(0.37_0.13_145)]" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+          <div className="flex flex-1 items-center gap-2 sm:gap-3 rounded-[12px] border border-border bg-background px-3 sm:px-4 py-3">
+            <div className="hidden sm:flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-success-pale">
+              <svg className="h-4.5 w-4.5 text-success-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
               </svg>
             </div>
             <div>
-              <p className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{totalEmployees}</p>
-              <p className="mt-1 text-[11px] text-muted">พนักงานทั้งหมด</p>
+              <p className="text-[18px] sm:text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{totalEmployees}</p>
+              <p className="mt-1 text-[10px] sm:text-[11px] text-muted leading-tight">พนักงานทั้งหมด</p>
             </div>
           </div>
 
-          <div className="flex flex-1 items-center gap-3 rounded-[12px] border border-border bg-background px-4 py-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-accent-pale">
-              <svg className="h-4.5 w-4.5 text-amber-700" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+          <div className="flex flex-1 items-center gap-2 sm:gap-3 rounded-[12px] border border-border bg-background px-3 sm:px-4 py-3">
+            <div className="hidden sm:flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-accent-pale">
+              <svg className="h-4.5 w-4.5 text-accent-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
             </div>
             <div>
-              <p className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{activeEmployees}</p>
-              <p className="mt-1 text-[11px] text-muted">ปฏิบัติงานอยู่</p>
+              <p className="text-[18px] sm:text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{activeEmployees}</p>
+              <p className="mt-1 text-[10px] sm:text-[11px] text-muted leading-tight">ปฏิบัติงานอยู่</p>
             </div>
           </div>
         </div>

@@ -65,7 +65,7 @@ export default function AccountSettingsPage() {
   return (
     <>
       <Navbar title="ตั้งค่าบัญชี" />
-      <main className="mx-auto w-full max-w-2xl px-4 py-8">
+      <main className="mx-auto w-full max-w-3xl px-4 py-8">
 
       {/* Avatar */}
       <div className="mb-6 flex justify-center animate-enter" style={{ animationDelay: "30ms" }}>

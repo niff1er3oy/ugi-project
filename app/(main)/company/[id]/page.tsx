@@ -6,28 +6,8 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
+import { Section, InfoRow } from "@/components/detail-section";
 import { COMPANIES, getCompanyStats, type Company } from "@/lib/companies";
-
-// ── Sub-components ─────────────────────────────────────────────
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-start justify-between gap-4 px-4 py-3">
-      <span className="w-36 shrink-0 text-[12px] text-muted">{label}</span>
-      <span className="text-right text-[13px] text-ink">{value}</span>
-    </div>
-  );
-}
-
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="animate-enter">
-      <p className="mb-2 px-1 text-[11px] font-medium uppercase tracking-[0.06em] text-muted">{label}</p>
-      <div className="overflow-hidden rounded-[12px] border border-border bg-background divide-y divide-border">
-        {children}
-      </div>
-    </div>
-  );
-}
 
 function CompanyLogo({ company, size = 72 }: { company: Company; size?: number }) {
   const initials = company.shortName.replace(/[^A-Z]/g, "").slice(0, 2) || company.shortName.slice(0, 2).toUpperCase();
@@ -73,9 +53,42 @@ export default function CompanyDetailPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-64 flex-1 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-ghost border-t-primary" />
-      </div>
+      <>
+        <Navbar title="รายละเอียดบริษัท" />
+        <main className="mx-auto w-full max-w-3xl px-4 pb-8" aria-busy="true" aria-label="กำลังโหลด">
+          <div className="mb-6 mt-4 flex flex-col items-center text-center" aria-hidden="true">
+            <div className="h-[76px] w-[76px] animate-pulse rounded-[18px] bg-border" />
+            <div className="mt-4 h-[19px] w-32 animate-pulse rounded-[3px] bg-border" />
+            <div className="mt-1 h-3 w-48 animate-pulse rounded-[3px] bg-border" />
+            <div className="mt-3 h-6 w-24 animate-pulse rounded-full bg-border" />
+            <div className="mt-5 w-full max-w-xs rounded-[12px] border border-border bg-background px-4 py-3">
+              <div className="flex items-center justify-around">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1">
+                    <div className="h-5 w-8 animate-pulse rounded-[3px] bg-border" />
+                    <div className="h-3 w-12 animate-pulse rounded-[3px] bg-border" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="space-y-5" aria-hidden="true">
+            {[3, 3, 4].map((rows, i) => (
+              <div key={i}>
+                <div className="mb-2 h-4 w-24 animate-pulse rounded-[3px] bg-border" />
+                <div className="overflow-hidden rounded-[12px] border border-border bg-background divide-y divide-border">
+                  {Array.from({ length: rows }).map((_, j) => (
+                    <div key={j} className="flex items-center justify-between px-4 py-3">
+                      <div className="h-3.5 w-28 animate-pulse rounded-[3px] bg-border" />
+                      <div className="h-3.5 w-24 animate-pulse rounded-[3px] bg-border" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -100,7 +113,7 @@ export default function CompanyDetailPage() {
     <>
       <Navbar title="รายละเอียดบริษัท" right={editButton} />
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-8">
+      <main className="mx-auto w-full max-w-3xl px-4 pb-8">
 
         {/* ── Profile hero ───────────────────────────────────── */}
         <div className="mb-6 mt-4 flex flex-col items-center text-center animate-enter">
@@ -126,12 +139,12 @@ export default function CompanyDetailPage() {
             </div>
             <div className="h-8 w-px bg-border" />
             <div className="flex flex-col items-center">
-              <span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-[oklch(0.37_0.13_145)]">{stats.active}</span>
+              <span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-success-text">{stats.active}</span>
               <span className="mt-1 text-[10px] text-muted">ปฏิบัติงาน</span>
             </div>
             <div className="h-8 w-px bg-border" />
             <div className="flex flex-col items-center">
-              <span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-amber-600">{stats.leave}</span>
+              <span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-accent-text">{stats.leave}</span>
               <span className="mt-1 text-[10px] text-muted">ลาพัก</span>
             </div>
             <div className="h-8 w-px bg-border" />
@@ -146,22 +159,22 @@ export default function CompanyDetailPage() {
 
           {/* ── ข้อมูลบริษัท ──────────────────────────────────── */}
           <Section label="ข้อมูลบริษัท">
-            <InfoRow label="เลขทะเบียนนิติบุคคล" value={
+            <InfoRow labelWidth="w-36" label="เลขทะเบียนนิติบุคคล" value={
               <span className="font-mono text-[12px]">{company.taxId}</span>
             } />
-            <InfoRow label="ประเภทนิติบุคคล" value={`บริษัท${company.type}`} />
-            <InfoRow label="ปีที่ก่อตั้ง" value={`พ.ศ. ${company.founded}`} />
+            <InfoRow labelWidth="w-36" label="ประเภทนิติบุคคล" value={`บริษัท${company.type}`} />
+            <InfoRow labelWidth="w-36" label="ปีที่ก่อตั้ง" value={`พ.ศ. ${company.founded}`} />
           </Section>
 
           {/* ── ช่องทางติดต่อ ──────────────────────────────────── */}
           <Section label="ช่องทางติดต่อ">
-            <InfoRow label="ที่อยู่" value={
+            <InfoRow labelWidth="w-36" label="ที่อยู่" value={
               <span className="text-left leading-relaxed">{company.address}</span>
             } />
-            <InfoRow label="โทรศัพท์" value={
+            <InfoRow labelWidth="w-36" label="โทรศัพท์" value={
               <a href={`tel:${company.phone}`} className="text-primary hover:underline">{company.phone}</a>
             } />
-            <InfoRow label="เว็บไซต์" value={
+            <InfoRow labelWidth="w-36" label="เว็บไซต์" value={
               <span className="text-primary">{company.website}</span>
             } />
           </Section>

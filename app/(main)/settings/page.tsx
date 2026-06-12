@@ -45,16 +45,58 @@ export default function SettingsPage() {
 
   if (!ready) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-ghost border-t-primary" />
-      </div>
+      <>
+        <Navbar title="ตั้งค่า" back={false} />
+        <main className="mx-auto w-full max-w-3xl px-4 py-8" aria-busy="true" aria-label="กำลังโหลด">
+          <div className="mb-6" aria-hidden="true">
+            <div className="mb-2 h-4 w-20 animate-pulse rounded-[3px] bg-border" />
+            <div className="overflow-hidden rounded-[12px] border border-border">
+              <div className="flex items-center gap-3 bg-background px-4 py-3.5">
+                <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-border" />
+                <div>
+                  <div className="h-3.5 w-28 animate-pulse rounded-[3px] bg-border" />
+                  <div className="mt-1 h-3 w-40 animate-pulse rounded-[3px] bg-border" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mb-6" aria-hidden="true">
+            <div className="mb-2 h-4 w-24 animate-pulse rounded-[3px] bg-border" />
+            <div className="overflow-hidden rounded-[12px] border border-border divide-y divide-border">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between bg-background px-4 py-3.5">
+                  <div>
+                    <div className="h-3.5 w-40 animate-pulse rounded-[3px] bg-border" />
+                    <div className="mt-1 h-3 w-56 animate-pulse rounded-[3px] bg-border" />
+                  </div>
+                  <div className="h-6 w-11 shrink-0 animate-pulse rounded-full bg-border" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mb-6" aria-hidden="true">
+            <div className="mb-2 h-4 w-16 animate-pulse rounded-[3px] bg-border" />
+            <div className="overflow-hidden rounded-[12px] border border-border divide-y divide-border">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between bg-background px-4 py-3.5">
+                  <div className="h-3.5 w-28 animate-pulse rounded-[3px] bg-border" />
+                  <div className="h-3.5 w-16 animate-pulse rounded-[3px] bg-border" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mt-2" aria-hidden="true">
+            <div className="h-[52px] w-full animate-pulse rounded-[12px] bg-border" />
+          </div>
+        </main>
+      </>
     );
   }
 
   return (
     <>
       <Navbar title="ตั้งค่า" back={false} />
-      <main className="mx-auto w-full max-w-2xl px-4 py-8">
+      <main className="mx-auto w-full max-w-3xl px-4 py-8">
 
       {/* Account */}
       <Section label="บัญชีของฉัน" delay={40}>
@@ -164,7 +206,7 @@ function Section({
 }) {
   return (
     <div className="mb-6 animate-enter" style={{ animationDelay: `${delay}ms` }}>
-      <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-muted px-1">
+      <p className="mb-2 px-1 text-[13px] font-medium text-muted">
         {label}
       </p>
       <div className="rounded-[12px] border border-border overflow-hidden divide-y divide-border">
@@ -188,7 +230,7 @@ function SettingRow({
       <div className="min-w-0">
         <p className="text-[14px] font-medium text-ink">{label}</p>
         {description && (
-          <p className="mt-0.5 text-[12px] text-muted leading-relaxed">{description}</p>
+          <p className="mt-0.5 text-[13px] text-muted leading-relaxed">{description}</p>
         )}
       </div>
       <div className="shrink-0">{children}</div>

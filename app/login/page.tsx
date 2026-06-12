@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  getAdditionalUserInfo,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 
@@ -36,8 +38,9 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
-      router.push("/");
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      const isNew = getAdditionalUserInfo(result)?.isNewUser;
+      router.push(isNew ? "/setup-profile" : "/");
     } catch (err: unknown) {
       setError(getFirebaseErrorMessage(err));
     } finally {
@@ -116,6 +119,10 @@ export default function LoginPage() {
           <button onClick={handleGoogleLogin} disabled={loading} className="w-full flex items-center justify-center gap-[10px] rounded-[6px] border border-border bg-background px-4 py-[11px] text-[15px] font-medium text-ink transition-[background-color,border-color] duration-150 hover:bg-surface hover:border-border-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed">
             <GoogleIcon />เข้าสู่ระบบด้วย Google
           </button>
+          <p className="mt-7 text-center text-[13px] text-muted">
+            ยังไม่มีบัญชี?{" "}
+            <Link href="/register" className="font-medium text-primary hover:underline">สมัครใหม่</Link>
+          </p>
         </div>
       </main>
     </div>

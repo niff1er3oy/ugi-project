@@ -95,7 +95,7 @@ const mockNotifications: Notification[] = [
 const typeConfig = {
   warning: {
     bg: "bg-accent-pale",
-    text: "text-amber-700",
+    text: "text-accent-text",
     dot: "bg-accent",
     icon: (
       <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
@@ -157,9 +157,51 @@ export default function NotificationsPage() {
 
   if (!ready) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-ghost border-t-primary" />
-      </div>
+      <>
+        <Navbar title="แจ้งเตือน" back={false} />
+        <main className="mx-auto w-full max-w-3xl px-4 py-8" aria-busy="true" aria-label="กำลังโหลด">
+          <div className="mb-6" aria-hidden="true">
+            <div className="mb-2 h-4 w-8 animate-pulse rounded-[3px] bg-border" />
+            <div className="overflow-hidden rounded-[12px] border border-border divide-y divide-border">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-3 px-4 py-3.5 bg-primary-ghost/20">
+                  <div className="mt-0.5 h-8 w-8 shrink-0 animate-pulse rounded-[8px] bg-border" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="h-3.5 w-40 animate-pulse rounded-[3px] bg-border" />
+                      <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-border" />
+                    </div>
+                    <div className="h-3 w-full animate-pulse rounded-[3px] bg-border" />
+                    <div className="mt-0.5 h-3 w-3/4 animate-pulse rounded-[3px] bg-border" />
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <div className="h-4 w-20 animate-pulse rounded-full bg-border" />
+                      <div className="h-3 w-16 animate-pulse rounded-[3px] bg-border" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div aria-hidden="true">
+            <div className="mb-2 h-4 w-16 animate-pulse rounded-[3px] bg-border" />
+            <div className="overflow-hidden rounded-[12px] border border-border divide-y divide-border">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-3 px-4 py-3.5 bg-background opacity-75">
+                  <div className="mt-0.5 h-8 w-8 shrink-0 animate-pulse rounded-[8px] bg-border" />
+                  <div className="flex-1 min-w-0">
+                    <div className="h-3.5 w-36 animate-pulse rounded-[3px] bg-border" />
+                    <div className="mt-1 h-3 w-full animate-pulse rounded-[3px] bg-border" />
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <div className="h-4 w-20 animate-pulse rounded-full bg-border" />
+                      <div className="h-3 w-16 animate-pulse rounded-[3px] bg-border" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -179,7 +221,7 @@ export default function NotificationsPage() {
           ) : undefined
         }
       />
-      <main className="mx-auto w-full max-w-2xl px-4 py-8">
+      <main className="mx-auto w-full max-w-3xl px-4 py-8">
 
       {unread.length === 0 && earlier.length === 0 && (
         <div className="flex flex-col items-center py-20 text-center animate-enter">
@@ -195,7 +237,7 @@ export default function NotificationsPage() {
 
       {unread.length > 0 && (
         <section className="mb-6 animate-enter" style={{ animationDelay: "40ms" }}>
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-muted">ใหม่</p>
+          <p className="mb-2 text-[13px] font-medium text-muted">ใหม่</p>
           <ul className="divide-y divide-border rounded-[12px] border border-border overflow-hidden">
             {unread.map((n, i) => (
               <NotificationItem
@@ -211,7 +253,7 @@ export default function NotificationsPage() {
 
       {earlier.length > 0 && (
         <section className="animate-enter" style={{ animationDelay: "80ms" }}>
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-muted">ก่อนหน้า</p>
+          <p className="mb-2 text-[13px] font-medium text-muted">ก่อนหน้า</p>
           <ul className="divide-y divide-border rounded-[12px] border border-border overflow-hidden">
             {earlier.map((n, i) => (
               <NotificationItem
@@ -262,7 +304,7 @@ function NotificationItem({
               <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${cfg.dot}`} aria-label="ยังไม่ได้อ่าน" />
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-muted leading-relaxed line-clamp-2">
+          <p className="mt-0.5 text-[13px] text-muted leading-relaxed line-clamp-2">
             {n.message}
           </p>
           <div className="mt-1.5 flex items-center gap-2">

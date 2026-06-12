@@ -113,26 +113,44 @@ export default function EmployeesPage() {
     });
   }, [search, statusFilter, deptFilter]);
 
-  const statusCounts = useMemo(() => ({
-    all:      EMPLOYEES.length,
-    active:   EMPLOYEES.filter((e) => e.status === "active").length,
-    leave:    EMPLOYEES.filter((e) => e.status === "leave").length,
-    resigned: EMPLOYEES.filter((e) => e.status === "resigned").length,
-  }), []);
-
-  const deptCounts = useMemo(() =>
-    DEPARTMENTS.reduce<Record<string, number>>((acc, d) => {
-      acc[d] = EMPLOYEES.filter((e) => e.department === d).length;
-      return acc;
-    }, {}), []);
-
   const hasFilter = search || statusFilter !== "all" || deptFilter !== "all";
 
   if (!ready) {
     return (
-      <div className="flex min-h-64 flex-1 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-ghost border-t-primary" />
-      </div>
+      <>
+        <Navbar title="ข้อมูลพนักงาน" back={false} />
+        <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md" aria-hidden="true">
+          <div className="px-4 pt-3 pb-2.5">
+            <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
+          </div>
+          <div className="flex gap-1.5 overflow-x-hidden px-4 pb-2.5">
+            {[72, 96, 64, 80].map((w, i) => (
+              <div key={i} className="h-11 shrink-0 animate-pulse rounded-full bg-border" style={{ width: w }} />
+            ))}
+          </div>
+          <div className="flex gap-1.5 overflow-x-hidden px-4 pb-3">
+            {[52, 80, 88, 72, 80, 72].map((w, i) => (
+              <div key={i} className="h-11 shrink-0 animate-pulse rounded-full bg-border" style={{ width: w }} />
+            ))}
+          </div>
+        </div>
+        <main className="w-full px-4 py-4" aria-busy="true" aria-label="กำลังโหลด">
+          <div className="mb-3 h-4 w-10 animate-pulse rounded-[3px] bg-border" aria-hidden="true" />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" aria-hidden="true">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center rounded-[14px] border border-border bg-background p-4">
+                <div className="h-14 w-14 animate-pulse rounded-full bg-border" />
+                <div className="mt-3 h-3.5 w-20 animate-pulse rounded-[3px] bg-border" />
+                <div className="mt-2 h-5 w-16 animate-pulse rounded-full bg-border" />
+                <div className="mt-1.5 h-5 w-14 animate-pulse rounded-full bg-border" />
+                <div className="mt-3 w-full border-t border-border pt-2.5">
+                  <div className="mx-auto h-3 w-14 animate-pulse rounded-[3px] bg-border" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -152,20 +170,17 @@ export default function EmployeesPage() {
       />
 
       {/* Sticky search + filter */}
-      <div className="sticky top-12 z-30 border-b border-border bg-background/95 backdrop-blur-md">
+      <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="px-4 pt-3 pb-2.5">
           <div className="relative">
-            <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-            </svg>
             <input
               type="search"
               placeholder="ค้นหาชื่อ ตำแหน่ง ทีม..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="field-input pl-9 pr-9"
+              className="field-input pr-9"
             />
-            {search && (
+            {search ? (
               <button
                 onClick={() => setSearch("")}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-border text-muted hover:bg-border-strong hover:text-ink"
@@ -175,54 +190,57 @@ export default function EmployeesPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
               </button>
+            ) : (
+              <svg className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
             )}
           </div>
         </div>
 
         {/* Status chips */}
-        <div className="flex gap-1.5 overflow-x-auto px-4 pb-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div role="group" aria-label="กรองตามสถานะ" className="flex gap-1.5 overflow-x-auto px-4 pb-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {STATUS_FILTER_OPTS.map((opt) => {
             const active = statusFilter === opt.value;
             return (
               <button
                 key={opt.value}
                 onClick={() => setStatusFilter(opt.value)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 ${active ? "border-primary bg-primary text-white" : "border-border bg-background text-muted hover:border-border-strong hover:text-ink"}`}
+                aria-pressed={active}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 min-h-[44px] ${active ? "border-primary bg-primary text-white" : "border-border bg-background text-muted hover:border-border-strong hover:text-ink"}`}
               >
                 {opt.value !== "all" && (
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: active ? "white" : STATUS_CONFIG[opt.value as EmpStatus].dot }} />
+                  <span
+                    className="h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: active ? "white" : STATUS_CONFIG[opt.value as EmpStatus].dot }}
+                  />
                 )}
                 {opt.label}
-                <span className={`rounded-full px-1.5 py-px text-[10px] font-semibold ${active ? "bg-white/20 text-white" : "bg-surface text-muted"}`}>
-                  {statusCounts[opt.value]}
-                </span>
               </button>
             );
           })}
         </div>
 
         {/* Department chips */}
-        <div className="flex gap-1.5 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div role="group" aria-label="กรองตามทีม" className="flex gap-1.5 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
             onClick={() => setDeptFilter("all")}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 ${deptFilter === "all" ? "border-primary bg-primary-ghost text-primary" : "border-border bg-background text-muted hover:border-border-strong hover:text-ink"}`}
+            aria-pressed={deptFilter === "all"}
+            className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 min-h-[44px] ${deptFilter === "all" ? "border-primary bg-primary text-white" : "border-border bg-background text-muted hover:border-border-strong hover:text-ink"}`}
           >
             ทุกทีม
           </button>
           {DEPARTMENTS.map((dept) => {
             const active = deptFilter === dept;
-            const dc = DEPT_CONFIG[dept];
             return (
               <button
                 key={dept}
                 onClick={() => setDeptFilter(dept)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 ${active ? "border-primary bg-primary-ghost text-primary" : "border-border bg-background text-muted hover:border-border-strong hover:text-ink"}`}
+                aria-pressed={active}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 min-h-[44px] ${active ? "border-primary bg-primary text-white" : "border-border bg-background text-muted hover:border-border-strong hover:text-ink"}`}
               >
-                {active && <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: dc.color }} />}
+                {active && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/70" />}
                 {dept}
-                <span className={`rounded-full px-1.5 py-px text-[10px] font-semibold ${active ? "bg-primary/10 text-primary" : "bg-surface text-muted"}`}>
-                  {deptCounts[dept]}
-                </span>
               </button>
             );
           })}
@@ -230,9 +248,9 @@ export default function EmployeesPage() {
       </div>
 
       {/* Content */}
-      <main className="mx-auto w-full max-w-3xl px-4 py-4">
+      <main className="w-full px-4 py-4">
         <div className="mb-3 flex items-center gap-2">
-          <p className="text-[12px] text-muted animate-enter">
+          <p aria-live="polite" aria-atomic="true" className="text-[12px] text-muted animate-enter">
             {filtered.length > 0 ? `${filtered.length} คน` : "ไม่พบพนักงาน"}
           </p>
           {hasFilter && (
@@ -246,7 +264,7 @@ export default function EmployeesPage() {
         </div>
 
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {filtered.map((emp, i) => (
               <EmployeeCard key={emp.id} emp={emp} index={i} />
             ))}

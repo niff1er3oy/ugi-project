@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
+import { Section, InfoRow } from "@/components/detail-section";
 import { EMPLOYEES, DEPT_CONFIG, STATUS_CONFIG, type Employee } from "@/lib/employees";
 
 // ── Sub-components ─────────────────────────────────────────────
@@ -37,26 +38,6 @@ function Avatar({ emp, size = 80 }: { emp: Employee; size?: number }) {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-start justify-between gap-4 px-4 py-3">
-      <span className="w-28 shrink-0 text-[12px] text-muted">{label}</span>
-      <span className="text-right text-[13px] text-ink">{value}</span>
-    </div>
-  );
-}
-
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="animate-enter">
-      <p className="mb-2 px-1 text-[11px] font-medium uppercase tracking-[0.06em] text-muted">{label}</p>
-      <div className="overflow-hidden rounded-[12px] border border-border bg-background divide-y divide-border">
-        {children}
-      </div>
-    </div>
-  );
-}
-
 // ── Page ───────────────────────────────────────────────────────
 export default function EmployeeDetailPage() {
   const router = useRouter();
@@ -85,9 +66,39 @@ export default function EmployeeDetailPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-64 flex-1 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-ghost border-t-primary" />
-      </div>
+      <>
+        <Navbar title="รายละเอียดพนักงาน" />
+        <main className="mx-auto w-full max-w-3xl px-4 pb-8" aria-busy="true" aria-label="กำลังโหลด">
+          <div className="mb-6 mt-4 flex flex-col items-center text-center" aria-hidden="true">
+            <div className="h-[88px] w-[88px] animate-pulse rounded-full bg-border" />
+            <div className="mt-4 h-5 w-32 animate-pulse rounded-[3px] bg-border" />
+            <div className="mt-0.5 h-3.5 w-24 animate-pulse rounded-[3px] bg-border" />
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              <div className="h-6 w-24 animate-pulse rounded-full bg-border" />
+              <div className="h-6 w-20 animate-pulse rounded-full bg-border" />
+            </div>
+            <div className="mt-5 flex gap-3">
+              <div className="h-9 w-16 animate-pulse rounded-[8px] bg-border" />
+              <div className="h-9 w-20 animate-pulse rounded-[8px] bg-border" />
+            </div>
+          </div>
+          <div className="space-y-5" aria-hidden="true">
+            {[5, 2].map((rows, i) => (
+              <div key={i}>
+                <div className="mb-2 h-4 w-24 animate-pulse rounded-[3px] bg-border" />
+                <div className="overflow-hidden rounded-[12px] border border-border bg-background divide-y divide-border">
+                  {Array.from({ length: rows }).map((_, j) => (
+                    <div key={j} className="flex items-center justify-between px-4 py-3">
+                      <div className="h-3.5 w-24 animate-pulse rounded-[3px] bg-border" />
+                      <div className="h-3.5 w-28 animate-pulse rounded-[3px] bg-border" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -112,7 +123,7 @@ export default function EmployeeDetailPage() {
     <>
       <Navbar title="รายละเอียดพนักงาน" right={editButton} />
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-8">
+      <main className="mx-auto w-full max-w-3xl px-4 pb-8">
 
         {/* ── Profile hero ───────────────────────────────────── */}
         <div className="mb-6 mt-4 flex flex-col items-center text-center animate-enter">

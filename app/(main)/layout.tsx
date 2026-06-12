@@ -13,7 +13,7 @@ export default function MainLayout({
       <div className="flex min-h-screen">
         <Sidebar />
         <div className="flex flex-1 flex-col min-w-0">
-          <div className="pb-16 lg:pb-0">{children}</div>
+          <div className="pb-24 lg:pb-0">{children}</div>
         </div>
       </div>
       <BottomNav />

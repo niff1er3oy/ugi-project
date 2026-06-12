@@ -11,6 +11,7 @@
 
   --accent:         oklch(0.72 0.14 75);
   --accent-pale:    oklch(0.95 0.04 75);
+  --accent-text:    oklch(0.46 0.16 75);
 
   --surface:        oklch(0.971 0.009 292);
   --ink:            oklch(0.17 0.012 292);
@@ -22,14 +23,33 @@
   --error:          oklch(0.50 0.17 25);
   --error-pale:     oklch(0.95 0.040 25);
 
+  /* Semantic state tokens */
+  --success:        oklch(0.52 0.16 145);
+  --success-pale:   oklch(0.93 0.06 145);
+  --success-text:   oklch(0.37 0.13 145);
+  --warning-text:   oklch(0.42 0.16 75);
+
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.08 0.000 0);
-    --foreground: oklch(0.93 0.000 0);
+    --background:     oklch(0.10 0.008 292);
+    --foreground:     oklch(0.92 0.006 292);
+    --surface:        oklch(0.16 0.010 292);
+    --ink:            oklch(0.92 0.006 292);
+    --muted:          oklch(0.60 0.008 292);
+    --border:         oklch(0.27 0.010 292);
+    --border-strong:  oklch(0.43 0.013 292);
+    --primary-ghost:  oklch(0.18 0.060 292);
+    --accent-pale:    oklch(0.20 0.040 75);
+    --accent-text:    oklch(0.82 0.14 75);
+    --error-pale:     oklch(0.20 0.040 25);
+    --success:        oklch(0.62 0.17 145);
+    --success-pale:   oklch(0.16 0.050 145);
+    --success-text:   oklch(0.72 0.16 145);
+    --warning-text:   oklch(0.80 0.15 75);
   }
 }
 
@@ -44,6 +64,7 @@
 
   --color-accent:        var(--accent);
   --color-accent-pale:   var(--accent-pale);
+  --color-accent-text:   var(--accent-text);
 
   --color-surface:       var(--surface);
   --color-ink:           var(--ink);
@@ -54,6 +75,11 @@
 
   --color-error:         var(--error);
   --color-error-pale:    var(--error-pale);
+
+  --color-success:       var(--success);
+  --color-success-pale:  var(--success-pale);
+  --color-success-text:  var(--success-text);
+  --color-warning-text:  var(--warning-text);
 }
 
 /* ── Base ──────────────────────────────────────────────────── */
@@ -143,9 +169,36 @@ body {
   }
 }
 
+/* ── Home page profile header ───────────────────────────────── */
+.v1-profile {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 24px;
+}
+.v1-avatar {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  background: var(--primary); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 600; overflow: hidden;
+}
+.v1-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.v1-profile-info { min-width: 0; }
+.v1-greeting { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.v1-username { font-size: 16px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+.v1-usermeta {
+  font-size: 12px; color: var(--muted); line-height: 1.4;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.v1-profile-skeleton {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+}
+.v1-avatar-skel {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  background: var(--border);
+}
+
 /* ── Module grid (home page) ────────────────────────────────── */
 .v1-main {
-  max-width: 42rem; width: 100%; margin: 0 auto; padding: 40px 16px;
+  max-width: 64rem; width: 100%; margin: 0 auto; padding: 40px 16px;
 }
 .v1-main .v1-header { margin-bottom: 24px; }
 .v1-main .v1-grid {
@@ -153,6 +206,12 @@ body {
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   list-style: none; padding: 0; margin: 0;
+}
+@media (min-width: 480px) {
+  .v1-main .v1-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 640px) {
+  .v1-main .v1-grid { grid-template-columns: repeat(4, 1fr); }
 }
 .v1-main .v1-card {
   display: flex; flex-direction: column; align-items: center;

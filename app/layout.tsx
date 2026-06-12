@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Sarabun } from "next/font/google";
 import "./globals.css";
 
@@ -8,6 +8,10 @@ const sarabun = Sarabun({
   variable: "--font-sarabun",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "UGI — ระบบบริหารงานพนักงาน",

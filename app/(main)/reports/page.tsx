@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
-import { DEPT_CONFIG } from "@/lib/employees";
+import { DepartmentChip } from "@/components/department-chip";
 
 // ── Types ──────────────────────────────────────────────────────
 type WorkType = "ซ่อมบำรุง" | "ติดตั้ง" | "ตรวจสอบ" | "อื่นๆ";
@@ -43,9 +43,9 @@ const TYPE_ICON_PATH: Record<WorkType, string> = {
 };
 
 const STATUS_CONFIG: Record<WorkStatus, { label: string; bg: string; text: string; color: string }> = {
-  completed:   { label: "เสร็จแล้ว",        bg: "bg-[oklch(0.93_0.06_145)]", text: "text-[oklch(0.37_0.13_145)]", color: "oklch(0.52 0.16 145)" },
-  in_progress: { label: "กำลังดำเนินการ",   bg: "bg-primary-ghost",           text: "text-primary",               color: "oklch(0.44 0.27 292)" },
-  cancelled:   { label: "ถูกยกเลิก",        bg: "bg-error-pale",              text: "text-error",                 color: "oklch(0.50 0.17 25)"  },
+  completed:   { label: "เสร็จแล้ว",        bg: "bg-success-pale",  text: "text-success-text", color: "oklch(0.52 0.16 145)" },
+  in_progress: { label: "กำลังดำเนินการ",   bg: "bg-primary-ghost", text: "text-primary",      color: "oklch(0.44 0.27 292)" },
+  cancelled:   { label: "ถูกยกเลิก",        bg: "bg-error-pale",    text: "text-error",        color: "oklch(0.50 0.17 25)"  },
 };
 
 // ── Mock data ──────────────────────────────────────────────────
@@ -158,25 +158,6 @@ function DonutChart({ segments, total }: { segments: { label: string; count: num
   );
 }
 
-function DepartmentChip({ name }: { name: string }) {
-  const dept = DEPT_CONFIG[name];
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-[3px] text-[10px] font-semibold"
-      style={{
-        backgroundColor: dept?.bg ?? "var(--surface)",
-        color: dept?.color ?? "var(--muted)",
-      }}
-    >
-      <span
-        className="h-1.5 w-1.5 shrink-0 rounded-full"
-        style={{ backgroundColor: dept?.color ?? "var(--muted)" }}
-      />
-      {name}
-    </span>
-  );
-}
-
 function TaskThumbnail({ type }: { type: WorkType }) {
   const color = TYPE_COLORS[type];
   const iconPath = TYPE_ICON_PATH[type];
@@ -223,9 +204,77 @@ export default function ReportsPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-64 flex-1 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-ghost border-t-primary" />
-      </div>
+      <>
+        <Navbar title="รายงาน" back={false} />
+        <main className="mx-auto w-full max-w-5xl px-4 py-6 space-y-5" aria-busy="true" aria-label="กำลังโหลด">
+          <div className="flex items-center gap-3" aria-hidden="true">
+            <div className="flex-1 space-y-1.5">
+              <div className="h-3 w-10 animate-pulse rounded-[3px] bg-border" />
+              <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
+            </div>
+            <div className="w-32 space-y-1.5">
+              <div className="h-3 w-14 animate-pulse rounded-[3px] bg-border" />
+              <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
+            </div>
+          </div>
+          <div className="h-3.5 w-48 animate-pulse rounded-[3px] bg-border" aria-hidden="true" />
+          <div className="grid grid-cols-2 gap-3" aria-hidden="true">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-[12px] border border-border bg-background px-4 py-3.5">
+                <div className="mb-1.5 flex items-center gap-1.5">
+                  <div className="h-2 w-2 animate-pulse rounded-full bg-border" />
+                  <div className="h-3 w-28 animate-pulse rounded-[3px] bg-border" />
+                </div>
+                <div className="flex items-end gap-1">
+                  <div className="h-8 w-10 animate-pulse rounded-[3px] bg-border" />
+                  <div className="mb-0.5 h-4 w-6 animate-pulse rounded-[3px] bg-border" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-[12px] border border-border bg-background px-5 py-4" aria-hidden="true">
+            <div className="mb-4 h-4 w-28 animate-pulse rounded-[3px] bg-border" />
+            <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-10">
+              <div className="h-[148px] w-[148px] shrink-0 animate-pulse rounded-full bg-border" />
+              <div className="grid w-full grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-1 sm:w-auto">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <div className="mt-[3px] h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-border" />
+                    <div>
+                      <div className="h-3.5 w-20 animate-pulse rounded-[3px] bg-border" />
+                      <div className="mt-1 h-3 w-24 animate-pulse rounded-[3px] bg-border" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="rounded-[12px] border border-border bg-background overflow-hidden" aria-hidden="true">
+            <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+              <div className="h-4 w-28 animate-pulse rounded-[3px] bg-border" />
+              <div className="h-3.5 w-14 animate-pulse rounded-[3px] bg-border" />
+            </div>
+            <ul className="divide-y divide-border">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <li key={i} className="flex items-start gap-3.5 px-5 py-4">
+                  <div className="h-[52px] w-[52px] shrink-0 animate-pulse rounded-[10px] bg-border" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="h-4 w-3/4 animate-pulse rounded-[3px] bg-border" />
+                      <div className="h-5 w-20 shrink-0 animate-pulse rounded-full bg-border" />
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+                      <div className="h-3 w-24 animate-pulse rounded-[3px] bg-border" />
+                      <div className="h-3 w-20 animate-pulse rounded-[3px] bg-border" />
+                    </div>
+                    <div className="mt-2 h-5 w-20 animate-pulse rounded-full bg-border" />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -233,7 +282,7 @@ export default function ReportsPage() {
     <>
       <Navbar title="รายงาน" back={false} />
 
-      <main className="mx-auto w-full max-w-2xl px-4 py-6 space-y-5">
+      <main className="mx-auto w-full max-w-5xl px-4 py-6 space-y-5">
 
         {/* Period selector */}
         <div className="flex items-center gap-3 animate-enter">
@@ -286,10 +335,10 @@ export default function ReportsPage() {
           style={{ animationDelay: "50ms" }}
         >
           {[
-            { label: "การปฏิบัติงานทั้งหมด", value: stats.total,      unit: "งาน", color: "text-ink",                        dot: "bg-border-strong" },
-            { label: "งานที่เสร็จแล้ว",      value: stats.completed,  unit: "งาน", color: "text-[oklch(0.37_0.13_145)]",   dot: "bg-[oklch(0.52_0.16_145)]" },
-            { label: "กำลังดำเนินการ",        value: stats.inProgress, unit: "งาน", color: "text-primary",                   dot: "bg-primary" },
-            { label: "ถูกยกเลิก",             value: stats.cancelled,  unit: "งาน", color: "text-error",                     dot: "bg-error" },
+            { label: "การปฏิบัติงานทั้งหมด", value: stats.total,      unit: "งาน", color: "text-ink",          dot: "bg-border-strong" },
+            { label: "งานที่เสร็จแล้ว",      value: stats.completed,  unit: "งาน", color: "text-success-text", dot: "bg-success"        },
+            { label: "กำลังดำเนินการ",        value: stats.inProgress, unit: "งาน", color: "text-primary",      dot: "bg-primary"        },
+            { label: "ถูกยกเลิก",             value: stats.cancelled,  unit: "งาน", color: "text-error",        dot: "bg-error"          },
           ].map((kpi, i) => (
             <div
               key={kpi.label}

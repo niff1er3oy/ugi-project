@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
-import { DEPT_CONFIG } from "@/lib/employees";
+import { DepartmentChip } from "@/components/department-chip";
 
 // ── Types ──────────────────────────────────────────────────────
 type WorkType = "ซ่อมบำรุง" | "ติดตั้ง" | "ตรวจสอบ" | "อื่นๆ";
@@ -25,9 +25,9 @@ type OffsiteTask = {
 
 // ── Config ─────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<WorkStatus, { label: string; bg: string; text: string; ring: string; dot: string }> = {
-  pending:     { label: "รอดำเนินการ",    bg: "bg-accent-pale",                   text: "text-amber-700",               ring: "ring-accent/30",   dot: "oklch(0.72 0.14 75)"  },
+  pending:     { label: "รอดำเนินการ",    bg: "bg-accent-pale",                   text: "text-accent-text",             ring: "ring-accent/30",   dot: "oklch(0.72 0.14 75)"  },
   in_progress: { label: "กำลังดำเนินการ", bg: "bg-primary-ghost",                 text: "text-primary",                 ring: "ring-primary/20",  dot: "oklch(0.44 0.27 292)" },
-  completed:   { label: "เสร็จแล้ว",      bg: "bg-[oklch(0.93_0.06_145)]",       text: "text-[oklch(0.37_0.13_145)]",  ring: "ring-[oklch(0.52_0.16_145)]/20", dot: "oklch(0.52 0.16 145)" },
+  completed:   { label: "เสร็จแล้ว",      bg: "bg-success-pale",                  text: "text-success-text",            ring: "ring-[oklch(0.52_0.16_145)]/20", dot: "oklch(0.52 0.16 145)" },
   cancelled:   { label: "ถูกยกเลิก",      bg: "bg-error-pale",                   text: "text-error",                   ring: "ring-error/20",    dot: "oklch(0.50 0.17 25)"  },
 };
 
@@ -185,22 +185,6 @@ const TYPE_FILTER_OPTIONS: { value: WorkType | "all"; label: string }[] = [
 ];
 
 // ── Sub-components ─────────────────────────────────────────────
-function DepartmentChip({ name }: { name: string }) {
-  const dept = DEPT_CONFIG[name];
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-[3px] text-[10px] font-semibold"
-      style={{
-        backgroundColor: dept?.bg ?? "var(--surface)",
-        color: dept?.color ?? "var(--muted)",
-      }}
-    >
-      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: dept?.color ?? "var(--muted)" }} />
-      {name}
-    </span>
-  );
-}
-
 function TaskCard({ task, index }: { task: OffsiteTask; index: number }) {
   const status = STATUS_CONFIG[task.status];
   const type = TYPE_CONFIG[task.type];
@@ -311,16 +295,6 @@ export default function OfsitePage() {
     });
   }, [search, statusFilter, typeFilter]);
 
-  const counts = useMemo(
-    () => ({
-      all: ALL_TASKS.length,
-      in_progress: ALL_TASKS.filter((t) => t.status === "in_progress").length,
-      pending: ALL_TASKS.filter((t) => t.status === "pending").length,
-      completed: ALL_TASKS.filter((t) => t.status === "completed").length,
-      cancelled: ALL_TASKS.filter((t) => t.status === "cancelled").length,
-    }),
-    []
-  );
 
   const headerRight = (
     <button className="flex items-center gap-1.5 rounded-[6px] bg-primary px-3 py-1.5 text-[12px] font-semibold text-white transition-colors duration-150 hover:bg-primary-deep active:scale-95">
@@ -333,9 +307,53 @@ export default function OfsitePage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-64 flex-1 items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-ghost border-t-primary" />
-      </div>
+      <>
+        <Navbar title="ปฏิบัติงานนอกสถานที่" back={false} />
+        <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md" aria-hidden="true">
+          <div className="px-4 pt-3 pb-2.5">
+            <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
+          </div>
+          <div className="flex gap-1.5 overflow-x-hidden px-4 pb-3">
+            {[72, 120, 88, 72, 88].map((w, i) => (
+              <div key={i} className="h-11 shrink-0 animate-pulse rounded-full bg-border" style={{ width: w }} />
+            ))}
+          </div>
+          <div className="flex gap-1.5 overflow-x-hidden px-4 pb-3">
+            {[72, 80, 72, 56].map((w, i) => (
+              <div key={i} className="h-11 shrink-0 animate-pulse rounded-full bg-border" style={{ width: w }} />
+            ))}
+          </div>
+        </div>
+        <main className="mx-auto w-full max-w-5xl px-4 py-4" aria-busy="true" aria-label="กำลังโหลด">
+          <div className="mb-3 h-4 w-10 animate-pulse rounded-[3px] bg-border" aria-hidden="true" />
+          <div className="space-y-3" aria-hidden="true">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-[12px] border border-border bg-background">
+                <div className="flex items-start gap-3 px-4 pt-4">
+                  <div className="mt-0.5 h-10 w-10 shrink-0 animate-pulse rounded-[10px] bg-border" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="h-[42px] flex-1 animate-pulse rounded-[3px] bg-border" />
+                      <div className="mt-0.5 h-5 w-24 shrink-0 animate-pulse rounded-full bg-border" />
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <div className="h-3.5 w-20 animate-pulse rounded-[3px] bg-border" />
+                      <div className="h-3.5 w-12 animate-pulse rounded-[3px] bg-border" />
+                    </div>
+                  </div>
+                </div>
+                <div className="mx-4 mt-2.5 h-2.5 animate-pulse rounded-[3px] bg-border" />
+                <div className="mx-4 mt-3.5 border-t border-border" />
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3">
+                  <div className="h-4 w-32 animate-pulse rounded-[3px] bg-border" />
+                  <div className="h-4 w-28 animate-pulse rounded-[3px] bg-border" />
+                  <div className="h-5 w-20 animate-pulse rounded-full bg-border" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -344,28 +362,18 @@ export default function OfsitePage() {
       <Navbar title="ปฏิบัติงานนอกสถานที่" back={false} right={headerRight} />
 
       {/* Sticky search + filter bar */}
-      <div className="sticky top-12 z-30 border-b border-border bg-background/95 backdrop-blur-md">
+      <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md">
         {/* Search */}
         <div className="px-4 pt-3 pb-2.5">
           <div className="relative">
-            <svg
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-            </svg>
             <input
               type="search"
               placeholder="ค้นหาชื่องาน สถานที่ ทีมงาน..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="field-input pl-9 pr-4"
+              className="field-input pr-9"
             />
-            {search && (
+            {search ? (
               <button
                 onClick={() => setSearch("")}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-border text-muted hover:bg-border-strong hover:text-ink"
@@ -375,24 +383,28 @@ export default function OfsitePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
               </button>
+            ) : (
+              <svg className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
             )}
           </div>
         </div>
 
         {/* Status chips */}
         <div
-          className="flex gap-1.5 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-1.5 overflow-x-auto px-4 pb-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           role="group"
           aria-label="กรองตามสถานะ"
         >
           {STATUS_FILTER_OPTIONS.map((opt) => {
             const active = statusFilter === opt.value;
-            const count = opt.value === "all" ? counts.all : counts[opt.value];
             return (
               <button
                 key={opt.value}
                 onClick={() => setStatusFilter(opt.value)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 ${
+                aria-pressed={active}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 min-h-[44px] ${
                   active
                     ? "border-primary bg-primary text-white"
                     : "border-border bg-background text-muted hover:border-border-strong hover:text-ink"
@@ -401,15 +413,10 @@ export default function OfsitePage() {
                 {opt.value !== "all" && (
                   <span
                     className="h-1.5 w-1.5 shrink-0 rounded-full"
-                    style={{
-                      backgroundColor: active ? "white" : STATUS_CONFIG[opt.value as WorkStatus].dot,
-                    }}
+                    style={{ backgroundColor: active ? "white" : STATUS_CONFIG[opt.value as WorkStatus].dot }}
                   />
                 )}
                 {opt.label}
-                <span className={`rounded-full px-1.5 py-px text-[10px] font-semibold ${active ? "bg-white/20 text-white" : "bg-surface text-muted"}`}>
-                  {count}
-                </span>
               </button>
             );
           })}
@@ -428,18 +435,14 @@ export default function OfsitePage() {
               <button
                 key={opt.value}
                 onClick={() => setTypeFilter(opt.value)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 ${
+                aria-pressed={active}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors duration-150 min-h-[44px] ${
                   active
-                    ? "border-primary bg-primary-ghost text-primary"
+                    ? "border-primary bg-primary text-white"
                     : "border-border bg-background text-muted hover:border-border-strong hover:text-ink"
                 }`}
               >
-                {tc && (
-                  <span
-                    className="h-1.5 w-1.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: tc.color }}
-                  />
-                )}
+                {active && tc && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/70" />}
                 {opt.label}
               </button>
             );
@@ -448,24 +451,20 @@ export default function OfsitePage() {
       </div>
 
       {/* Content */}
-      <main className="mx-auto w-full max-w-2xl px-4 py-4">
+      <main className="mx-auto w-full max-w-5xl px-4 py-4">
         {/* Result count */}
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-[12px] text-muted animate-enter">
-            {filtered.length > 0
-              ? `${filtered.length} งาน`
-              : search || statusFilter !== "all" || typeFilter !== "all"
-              ? "ไม่พบงานที่ตรงกัน"
-              : "ไม่มีงาน"}
-            {(search || statusFilter !== "all" || typeFilter !== "all") && (
-              <button
-                onClick={() => { setSearch(""); setStatusFilter("all"); setTypeFilter("all"); }}
-                className="ml-2 text-primary hover:underline"
-              >
-                ล้างตัวกรอง
-              </button>
-            )}
+        <div className="mb-3 flex items-center gap-2">
+          <p aria-live="polite" aria-atomic="true" className="text-[12px] text-muted animate-enter">
+            {filtered.length > 0 ? `${filtered.length} งาน` : search || statusFilter !== "all" || typeFilter !== "all" ? "ไม่พบงานที่ตรงกัน" : "ไม่มีงาน"}
           </p>
+          {(search || statusFilter !== "all" || typeFilter !== "all") && (
+            <button
+              onClick={() => { setSearch(""); setStatusFilter("all"); setTypeFilter("all"); }}
+              className="text-[12px] text-primary hover:underline"
+            >
+              ล้างตัวกรอง
+            </button>
+          )}
         </div>
 
         {/* Cards */}
