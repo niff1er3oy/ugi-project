@@ -1,5 +1,8 @@
+import { getDocs, getDoc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { offsiteRef, offsiteDocRef } from "@/lib/db";
+
 // ── Types ──────────────────────────────────────────────────────
-export type WorkType = "ซ่อมบำรุง" | "ติดตั้ง" | "ตรวจสอบ" | "อื่นๆ";
+export type WorkType   = "ซ่อมบำรุง" | "ติดตั้ง" | "ตรวจสอบ" | "อื่นๆ";
 export type WorkStatus = "pending" | "in_progress" | "completed" | "cancelled";
 
 export type OffsiteTask = {
@@ -66,81 +69,27 @@ export const TYPE_FILTER_OPTIONS: { value: WorkType | "all"; label: string }[] =
   { value: "อื่นๆ",     label: "อื่นๆ"     },
 ];
 
-// ── Mock data ──────────────────────────────────────────────────
-export const ALL_TASKS: OffsiteTask[] = [
-  {
-    id: "WO-001", title: "ซ่อมท่อน้ำรั่วบริเวณอาคาร A ชั้น 3",
-    type: "ซ่อมบำรุง", status: "completed",
-    startDate: "12 มิ.ย. 2568", startTime: "09:00",
-    endDate: "12 มิ.ย. 2568", endTime: "11:30",
-    department: "ฝ่ายผลิต", location: "อาคาร A ชั้น 3",
-    note: "ท่อน้ำแตกในห้องน้ำชาย ซ่อมเสร็จก่อนกำหนด เปลี่ยนข้อต่อและหัวจ่ายน้ำใหม่ ทดสอบแรงดันน้ำเรียบร้อย",
-  },
-  {
-    id: "WO-002", title: "ติดตั้งระบบกล้องวงจรปิดคลังสินค้า B",
-    type: "ติดตั้ง", status: "in_progress",
-    startDate: "11 มิ.ย. 2568", startTime: "13:00",
-    department: "ฝ่ายวิศวกรรม", location: "คลังสินค้า B",
-    note: "ติดตั้งแล้ว 6 จาก 12 จุด คาดเสร็จวันที่ 14 มิ.ย. รอสายสัญญาณเพิ่มเติม",
-  },
-  {
-    id: "WO-003", title: "ตรวจสอบระบบไฟฟ้าประจำเดือนมิถุนายน",
-    type: "ตรวจสอบ", status: "completed",
-    startDate: "10 มิ.ย. 2568", startTime: "08:00",
-    endDate: "10 มิ.ย. 2568", endTime: "12:00",
-    department: "ฝ่ายความปลอดภัย", location: "โรงงานหลัก",
-    note: "ผ่านมาตรฐานทุกจุด ไม่พบความผิดปกติ ตรวจสอบครบ 48 จุดในโรงงานหลักและอาคารสนับสนุน",
-  },
-  {
-    id: "WO-004", title: "ซ่อมแซมหลังคารั่วอาคาร C",
-    type: "ซ่อมบำรุง", status: "pending",
-    startDate: "14 มิ.ย. 2568", startTime: "07:30",
-    department: "ฝ่ายผลิต", location: "อาคาร C หลังคาชั้น 5",
-    note: "รอช่างผู้รับเหมาภายนอกมาประเมินงาน คาดการณ์ใช้เวลา 2-3 วัน",
-  },
-  {
-    id: "WO-005", title: "ติดตั้งระบบปรับอากาศห้องประชุมใหญ่",
-    type: "ติดตั้ง", status: "in_progress",
-    startDate: "9 มิ.ย. 2568", startTime: "08:30",
-    department: "ฝ่ายวิศวกรรม", location: "ห้องประชุมใหญ่ อาคาร B",
-    note: "วางท่อลม 80% เหลือเชื่อมต่อไฟฟ้าและทดสอบระบบ คาดเสร็จสิ้นงวดนี้ภายใน 2 วัน",
-  },
-  {
-    id: "WO-006", title: "ตรวจสอบระบบดับเพลิงอาคาร D",
-    type: "ตรวจสอบ", status: "cancelled",
-    startDate: "8 มิ.ย. 2568", startTime: "10:00",
-    endDate: "8 มิ.ย. 2568", endTime: "10:30",
-    department: "ฝ่ายความปลอดภัย", location: "อาคาร D ทุกชั้น",
-    note: "ยกเลิกเนื่องจากอาคารปิดปรับปรุง เลื่อนไปเดือน ก.ค.",
-  },
-  {
-    id: "WO-007", title: "ซ่อมลิฟต์โดยสารอาคาร A",
-    type: "ซ่อมบำรุง", status: "pending",
-    startDate: "15 มิ.ย. 2568", startTime: "09:00",
-    department: "ฝ่ายวิศวกรรม", location: "อาคาร A ลิฟต์หมายเลข 2",
-    note: "รอชิ้นส่วนอะไหล่จากต่างประเทศ คาดได้รับภายใน 3-5 วันทำการ",
-  },
-  {
-    id: "WO-008", title: "ทาสีรั้วและพื้นที่ลานจอดรถ",
-    type: "อื่นๆ", status: "in_progress",
-    startDate: "7 มิ.ย. 2568", startTime: "06:00",
-    department: "ฝ่ายผลิต", location: "ลานจอดรถอาคาร A-B",
-    note: "ทาเสร็จแล้ว 2 โซน เหลืออีก 1 โซน คาดเสร็จสิ้นวันที่ 13 มิ.ย.",
-  },
-  {
-    id: "WO-009", title: "ตรวจสอบท่อระบายน้ำลานด้านหลัง",
-    type: "ตรวจสอบ", status: "completed",
-    startDate: "5 มิ.ย. 2568", startTime: "13:30",
-    endDate: "5 มิ.ย. 2568", endTime: "16:00",
-    department: "ฝ่ายความปลอดภัย", location: "ลานด้านหลังโรงงาน",
-    note: "พบตะกอนอุดตัน 2 จุด แนะนำล้างทำความสะอาดทุก 3 เดือน เก็บตัวอย่างตะกอนส่งวิเคราะห์แล้ว",
-  },
-  {
-    id: "WO-010", title: "ซ่อมประตูโรลลิ่งโกดังคลังสินค้า A",
-    type: "ซ่อมบำรุง", status: "completed",
-    startDate: "3 มิ.ย. 2568", startTime: "11:00",
-    endDate: "3 มิ.ย. 2568", endTime: "14:00",
-    department: "ฝ่ายวิศวกรรม", location: "คลังสินค้า A ประตูหมายเลข 3",
-    note: "เปลี่ยนสปริงและระบบล็อค ทดสอบเรียบร้อย พร้อมใช้งาน",
-  },
-];
+// ── Firestore CRUD ─────────────────────────────────────────────
+export async function fetchTasks(): Promise<OffsiteTask[]> {
+  const snap = await getDocs(offsiteRef());
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as OffsiteTask));
+}
+
+export async function fetchTask(id: string): Promise<OffsiteTask | null> {
+  const snap = await getDoc(offsiteDocRef(id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as OffsiteTask;
+}
+
+export async function createTask(data: Omit<OffsiteTask, "id">): Promise<string> {
+  const ref = await addDoc(offsiteRef(), data);
+  return ref.id;
+}
+
+export async function updateTask(id: string, data: Partial<Omit<OffsiteTask, "id">>): Promise<void> {
+  await updateDoc(offsiteDocRef(id), data);
+}
+
+export async function deleteTask(id: string): Promise<void> {
+  await deleteDoc(offsiteDocRef(id));
+}

@@ -1,33 +1,30 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import CompanyForm, { type CompanyFormData } from "@/components/company-form";
-import { COMPANIES } from "@/lib/companies";
+import { fetchCompany, updateCompany, type Company } from "@/lib/companies";
 
 export default function EditCompanyPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [company, setCompany] = useState<Company | null>(null);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
-      if (!user) router.replace("/login");
-      else setReady(true);
+    fetchCompany(params.id).then((data) => {
+      setCompany(data);
+      setLoading(false);
     });
-  }, [router]);
+  }, [params.id]);
 
-  const company = COMPANIES.find((c) => c.id === params.id);
-
-  function handleSubmit(data: CompanyFormData) {
-    // TODO: update in Firestore, then navigate
+  async function handleSubmit(data: CompanyFormData) {
+    await updateCompany(params.id, data);
     router.back();
   }
 
-  if (!ready) {
+  if (loading) {
     return (
       <>
         <Navbar title="แก้ไขข้อมูลบริษัท" />

@@ -1,33 +1,30 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import OffsiteTaskForm, { type OffsiteTaskFormData } from "@/components/offsite-task-form";
-import { ALL_TASKS, STATUS_CONFIG, TYPE_CONFIG } from "@/lib/offsite-tasks";
+import { fetchTask, updateTask, STATUS_CONFIG, TYPE_CONFIG, type OffsiteTask } from "@/lib/offsite-tasks";
 
 export default function OffsiteEditPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [task, setTask] = useState<OffsiteTask | null>(null);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
-      if (!user) router.replace("/login");
-      else setReady(true);
+    fetchTask(params.id).then((data) => {
+      setTask(data);
+      setLoading(false);
     });
-  }, [router]);
+  }, [params.id]);
 
-  const task = ALL_TASKS.find((t) => t.id === params.id);
-
-  function handleSubmit(data: OffsiteTaskFormData) {
-    // TODO: update in Firestore
+  async function handleSubmit(data: OffsiteTaskFormData) {
+    await updateTask(params.id, data);
     router.back();
   }
 
-  if (!ready) {
+  if (loading) {
     return (
       <>
         <Navbar title="แก้ไขงาน" />
@@ -50,7 +47,7 @@ export default function OffsiteEditPage() {
     return (
       <>
         <Navbar title="แก้ไขงาน" />
-        <div className="flex flex-col items-center py-24 text-center">
+        <div className="flex flex-col items-center py-24 text-center animate-enter">
           <p className="text-[15px] font-semibold text-ink">ไม่พบข้อมูลงาน</p>
           <p className="mt-1 text-[13px] text-muted">รหัส {params.id}</p>
         </div>
@@ -64,7 +61,7 @@ export default function OffsiteEditPage() {
   return (
     <>
       <Navbar title="แก้ไขงาน" />
-      <main className="mx-auto w-full max-w-3xl px-4 py-6 pb-24">
+      <main className="mx-auto w-full max-w-3xl px-4 py-6 pb-24 animate-enter">
 
         {/* Identity chip */}
         <div className="mb-6 flex items-center gap-3 rounded-[10px] bg-surface px-3 py-2.5">
@@ -73,11 +70,8 @@ export default function OffsiteEditPage() {
               <img src={task.photoURL} alt="" className="h-full w-full object-cover" />
             </div>
           ) : (
-            <div
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px]"
-              style={{ backgroundColor: type.lightBg }}
-            >
-              <svg className="h-4.5 w-4.5" fill="none" stroke={type.color} strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px]" style={{ backgroundColor: type.lightBg }}>
+              <svg className="h-4 w-4" fill="none" stroke={type.color} strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d={type.iconPath} />
               </svg>
             </div>

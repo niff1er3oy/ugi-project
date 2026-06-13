@@ -1,15 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
 import { modules } from "@/lib/modules";
-
-type UserProfile = { firstName: string; lastName: string; position: string };
+import { useUser } from "@/lib/user-context";
 
 function getInitials(name: string | null): string {
   if (!name) return "U";
@@ -19,60 +13,13 @@ function getInitials(name: string | null): string {
 }
 
 export default function HomePage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null | undefined>(undefined);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-
-  useEffect(() => {
-    return onAuthStateChanged(auth, async (u) => {
-      if (!u) { router.replace("/login"); return; }
-      setUser(u);
-      try {
-        const snap = await getDoc(doc(db, "users", u.uid));
-        if (snap.exists()) setProfile(snap.data() as UserProfile);
-      } catch {
-        // Firestore unavailable — fall back to auth data
-      }
-    });
-  }, [router]);
+  const { user, profile } = useUser();
 
   const displayName = profile
-    ? `${profile.firstName} ${profile.lastName}`.trim()
+    ? `${(profile as { firstName?: string }).firstName ?? ""} ${(profile as { lastName?: string }).lastName ?? ""}`.trim() || user?.displayName || user?.email || "ผู้ใช้งาน"
     : (user?.displayName ?? user?.email ?? "ผู้ใช้งาน");
 
-  const initials = getInitials(
-    profile ? `${profile.firstName} ${profile.lastName}` : (user?.displayName ?? null),
-  );
-
-  if (!user) {
-    return (
-      <>
-        <Navbar title="เมนูหลัก" back={false} />
-        <main className="mx-auto w-full max-w-[64rem] px-4 py-10" aria-busy="true" aria-label="กำลังโหลด">
-          <div className="mb-6 flex items-center gap-3 lg:mb-8 lg:gap-4" aria-hidden="true">
-            <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-border lg:h-14 lg:w-14" />
-            <div>
-              <div className="h-[16px] w-32 animate-pulse rounded-[3px] bg-border" />
-              <div className="mt-1.5 h-[13px] w-40 animate-pulse rounded-[3px] bg-border" />
-            </div>
-          </div>
-          <ul className="grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 sm:grid-cols-4" aria-hidden="true">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <li key={i} className="contents">
-                <div className="flex flex-col items-center rounded-[12px] border border-border bg-surface px-4 py-5 pointer-events-none select-none">
-                  <div className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-[10px] bg-primary-ghost">
-                    <div className="h-8 w-8 animate-pulse rounded-[8px] bg-border" />
-                  </div>
-                  <div className="mt-2 h-[13px] w-16 animate-pulse rounded-[3px] bg-border" />
-                  <div className="mt-1.5 h-[11px] w-24 animate-pulse rounded-[3px] bg-border" />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </main>
-      </>
-    );
-  }
+  const initials = getInitials(displayName !== "ผู้ใช้งาน" ? displayName : null);
 
   return (
     <>
@@ -83,7 +30,7 @@ export default function HomePage() {
             className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-[15px] font-semibold text-white lg:h-14 lg:w-14 lg:text-[18px]"
             aria-hidden="true"
           >
-            {user.photoURL ? (
+            {user?.photoURL ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
             ) : (
@@ -92,8 +39,10 @@ export default function HomePage() {
           </div>
           <div className="min-w-0">
             <p className="text-[16px] font-semibold leading-[1.3] text-ink lg:text-[20px]">{displayName}</p>
-            {profile?.position && (
-              <p className="truncate text-[12px] leading-[1.4] text-muted lg:text-[13px]">{profile.position}</p>
+            {(profile as { position?: string })?.position && (
+              <p className="truncate text-[12px] leading-[1.4] text-muted lg:text-[13px]">
+                {(profile as { position?: string }).position}
+              </p>
             )}
           </div>
         </div>

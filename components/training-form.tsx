@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { COMPANIES, COMPANY_DEPARTMENTS, EMPLOYEES, DEPT_CONFIG } from "@/lib/employees";
+import { useState, useEffect } from "react";
+import { fetchEmployees, DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { fetchCompanies, type Company } from "@/lib/companies";
 import {
   CATEGORIES, STATUS_CONFIG,
   type TrainingCategory, type TrainingStatus, type TrainingRecord,
@@ -34,10 +35,15 @@ function Field({ label, required, children }: { label: string; required?: boolea
 
 // ── Participant picker ──────────────────────────────────────────
 function ParticipantPicker({ selected, onChange }: { selected: string[]; onChange: (ids: string[]) => void }) {
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(false);
 
-  const filtered = EMPLOYEES.filter((emp) => {
+  useEffect(() => {
+    fetchEmployees().then(setEmployees);
+  }, []);
+
+  const filtered = employees.filter((emp) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return `${emp.firstName} ${emp.lastName} ${emp.position} ${emp.department}`.toLowerCase().includes(q);
@@ -47,7 +53,7 @@ function ParticipantPicker({ selected, onChange }: { selected: string[]; onChang
     onChange(selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id]);
   };
 
-  const selectedEmps = EMPLOYEES.filter((e) => selected.includes(e.id));
+  const selectedEmps = employees.filter((e) => selected.includes(e.id));
 
   return (
     <div>
@@ -111,7 +117,9 @@ function ParticipantPicker({ selected, onChange }: { selected: string[]; onChang
           {/* List */}
           <div className="max-h-52 overflow-y-auto divide-y divide-border">
             {filtered.length === 0 ? (
-              <p className="px-4 py-3 text-[12px] text-muted text-center">ไม่พบพนักงาน</p>
+              <p className="px-4 py-3 text-[12px] text-muted text-center">
+                {employees.length === 0 ? "กำลังโหลด..." : "ไม่พบพนักงาน"}
+              </p>
             ) : (
               filtered.map((emp) => {
                 const dept = DEPT_CONFIG[emp.department];
@@ -162,6 +170,7 @@ export default function TrainingForm({
   onCancel: () => void;
   submitLabel?: string;
 }) {
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [form, setForm] = useState<TrainingFormData>({
     title:        defaultValues?.title        ?? "",
     category:     defaultValues?.category     ?? "ความปลอดภัย",
@@ -171,17 +180,28 @@ export default function TrainingForm({
     hours:        defaultValues?.hours        ?? 0,
     instructor:   defaultValues?.instructor   ?? "",
     location:     defaultValues?.location     ?? "",
-    company:      defaultValues?.company      ?? COMPANIES[0],
+    company:      defaultValues?.company      ?? "",
     department:   defaultValues?.department,
     participants: defaultValues?.participants ?? [],
     note:         defaultValues?.note,
   });
 
+  useEffect(() => {
+    fetchCompanies().then((cos) => {
+      setCompanies(cos);
+      if (!defaultValues?.company && cos.length > 0) {
+        setForm((f) => ({ ...f, company: f.company || cos[0].name }));
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function set<K extends keyof TrainingFormData>(key: K, value: TrainingFormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  const depts = COMPANY_DEPARTMENTS[form.company] ?? [];
+  const currentCompany = companies.find((c) => c.name === form.company);
+  const depts = currentCompany?.departments ?? [];
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(form); }} className="space-y-7">
@@ -298,7 +318,10 @@ export default function TrainingForm({
             value={form.company}
             onChange={(e) => set("company", e.target.value)}
           >
-            {COMPANIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {form.company && !companies.find((c) => c.name === form.company) && (
+              <option value={form.company}>{form.company}</option>
+            )}
+            {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
         </Field>
         {depts.length > 0 && (

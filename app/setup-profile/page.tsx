@@ -19,6 +19,7 @@ export default function SetupProfilePage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [position, setPosition] = useState("");
+  const [officeId, setOfficeId] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +28,10 @@ export default function SetupProfilePage() {
       if (!u) { router.replace("/login"); return; }
       try {
         const snap = await getDoc(doc(db, "users", u.uid));
-        if (snap.exists()) { router.replace("/"); return; }
+        if (snap.exists()) {
+          router.replace(snap.data().role === "employee" ? "/me" : "/");
+          return;
+        }
       } catch {
         // Rules may not be configured — show the form anyway so the user isn't stuck
       }
@@ -38,13 +42,18 @@ export default function SetupProfilePage() {
     });
   }, [router]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!user) return;
     setError("");
+    if (officeId.trim() !== process.env.NEXT_PUBLIC_OFFICE_ID) {
+      setError("รหัส Office ไม่ถูกต้อง กรุณาติดต่อผู้ดูแลระบบ");
+      return;
+    }
     setLoading(true);
     try {
       await setDoc(doc(db, "users", user.uid), {
+        role: "officer",
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         position: position.trim(),
@@ -150,6 +159,21 @@ export default function SetupProfilePage() {
               className="field-input"
               style={{ padding: "10px 14px", fontSize: "15px" }}
               placeholder="เช่น วิศวกรอาวุโส, ผู้จัดการฝ่าย HR"
+            />
+          </div>
+
+          <div className="flex flex-col gap-[7px]">
+            <label htmlFor="officeId" className="text-[13.5px] font-medium text-ink leading-none">รหัส Office</label>
+            <input
+              id="officeId"
+              type="text"
+              required
+              value={officeId}
+              onChange={(e) => setOfficeId(e.target.value)}
+              disabled={loading}
+              className="field-input font-mono"
+              style={{ padding: "10px 14px", fontSize: "15px" }}
+              placeholder="ขอรหัสจากผู้ดูแลระบบ"
             />
           </div>
 

@@ -1,13 +1,11 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import { Section, InfoRow } from "@/components/detail-section";
 import ParticipantManager from "@/components/participant-manager";
-import { ALL_RECORDS, STATUS_CONFIG, CATEGORY_CONFIG, type TrainingCategory } from "@/lib/training";
+import { fetchTraining, deleteTraining, STATUS_CONFIG, CATEGORY_CONFIG, type TrainingRecord, type TrainingCategory } from "@/lib/training";
 
 function CategoryIcon({ category, size = 40 }: { category: TrainingCategory; size?: number }) {
   const cfg = CATEGORY_CONFIG[category];
@@ -26,18 +24,21 @@ function CategoryIcon({ category, size = 40 }: { category: TrainingCategory; siz
 export default function TrainingDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [record, setRecord] = useState<TrainingRecord | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
-      if (!user) router.replace("/login");
-      else setReady(true);
+    fetchTraining(params.id).then((data) => {
+      setRecord(data);
+      setLoading(false);
     });
-  }, [router]);
+  }, [params.id]);
 
-  const record = ALL_RECORDS.find((r) => r.id === params.id);
-  const status = record ? STATUS_CONFIG[record.status] : null;
+  async function handleDelete() {
+    await deleteTraining(params.id);
+    router.back();
+  }
 
   const editButton = (
     <button
@@ -51,7 +52,7 @@ export default function TrainingDetailPage() {
     </button>
   );
 
-  if (!ready) {
+  if (loading) {
     return (
       <>
         <Navbar title="รายละเอียดการอบรม" />
@@ -81,7 +82,7 @@ export default function TrainingDetailPage() {
     );
   }
 
-  if (!record || !status) {
+  if (!record) {
     return (
       <>
         <Navbar title="รายละเอียดการอบรม" />
@@ -97,6 +98,8 @@ export default function TrainingDetailPage() {
       </>
     );
   }
+
+  const status = STATUS_CONFIG[record.status];
 
   return (
     <>
@@ -124,21 +127,19 @@ export default function TrainingDetailPage() {
 
         <div className="space-y-5">
           <Section label="ข้อมูลหลักสูตร">
-            <InfoRow label="วันที่" value={record.endDate ? `${record.date} – ${record.endDate}` : record.date} />
-            <InfoRow label="จำนวนชั่วโมง" value={`${record.hours} ชั่วโมง`} />
-            <InfoRow label="วิทยากร"       value={record.instructor} />
+            <InfoRow label="วันที่"         value={record.endDate ? `${record.date} – ${record.endDate}` : record.date} />
+            <InfoRow label="จำนวนชั่วโมง"  value={`${record.hours} ชั่วโมง`} />
+            <InfoRow label="วิทยากร"        value={record.instructor} />
             <InfoRow label="รหัสการอบรม"   value={<span className="font-mono text-[12px]">{record.id}</span>} />
           </Section>
 
           <Section label="สถานที่และหน่วยงาน">
             <InfoRow label="สถานที่" value={record.location} />
             <InfoRow label="บริษัท"  value={record.company} />
-            {record.department && (
-              <InfoRow label="แผนก" value={record.department} />
-            )}
+            {record.department && <InfoRow label="แผนก" value={record.department} />}
           </Section>
 
-          <ParticipantManager participants={record.participants} />
+          <ParticipantManager trainingId={record.id} participants={record.participants} />
 
           {record.note && (
             <Section label="หมายเหตุ">
@@ -171,7 +172,7 @@ export default function TrainingDetailPage() {
                   ยกเลิก
                 </button>
                 <button
-                  onClick={() => { /* TODO: delete from Firestore */ router.back(); }}
+                  onClick={handleDelete}
                   className="flex-1 rounded-[8px] bg-error py-2.5 text-[13px] font-medium text-white transition-colors hover:opacity-90 active:scale-[0.98]"
                 >
                   ยืนยันลบ

@@ -1,3 +1,6 @@
+import { getDocs, getDoc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { trainingRef, trainingDocRef } from "@/lib/db";
+
 // ── Types ──────────────────────────────────────────────────────
 export type TrainingCategory = "ความปลอดภัย" | "ทักษะวิชาชีพ" | "ทักษะทั่วไป" | "การจัดการ" | "อื่นๆ";
 export type TrainingStatus   = "completed" | "in_progress" | "cancelled";
@@ -62,90 +65,31 @@ export const STATUS_FILTER_OPTIONS: { value: TrainingStatus | "all"; label: stri
   { value: "cancelled",   label: "ยกเลิก"         },
 ];
 
-// ── Mock data ──────────────────────────────────────────────────
-export const ALL_RECORDS: TrainingRecord[] = [
-  {
-    id: "TR-001",
-    title: "การปฐมพยาบาลเบื้องต้นและความปลอดภัยในการทำงาน",
-    category: "ความปลอดภัย", status: "completed",
-    date: "15 มิ.ย. 2568", hours: 6,
-    instructor: "วิทยากรจากกรมสวัสดิการแรงงาน",
-    location: "ห้องประชุมอาคาร A",
-    company: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด", department: "ฝ่ายผลิต",
-    participants: ["EMP-001","EMP-002","EMP-003","EMP-004","EMP-005","EMP-006","EMP-007","EMP-012","EMP-013","EMP-014"],
-    note: "ครอบคลุมเนื้อหา CPR การใช้ถังดับเพลิง และการอพยพหนีไฟ",
-  },
-  {
-    id: "TR-002",
-    title: "Excel Advanced สำหรับงานบัญชีและการเงิน",
-    category: "ทักษะวิชาชีพ", status: "completed",
-    date: "8 มิ.ย. 2568", hours: 8,
-    instructor: "อ.สมศักดิ์ วิทยาคม",
-    location: "ห้อง Training Center ชั้น 4",
-    company: "บริษัท UGI จำกัด (มหาชน)", department: "ฝ่ายบัญชี",
-    participants: ["EMP-008","EMP-009","EMP-010","EMP-011"],
-  },
-  {
-    id: "TR-003",
-    title: "การสื่อสารและการทำงานเป็นทีม",
-    category: "ทักษะทั่วไป", status: "in_progress",
-    date: "20 มิ.ย. 2568", endDate: "21 มิ.ย. 2568", hours: 12,
-    instructor: "บริษัท HR Training Solutions",
-    location: "โรงแรม Amari Pattaya",
-    company: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",
-    participants: ["EMP-001","EMP-002","EMP-003","EMP-004","EMP-005","EMP-006","EMP-007","EMP-012","EMP-013","EMP-014"],
-    note: "Workshop 2 วัน เนื้อหา Team Building และการแก้ปัญหาเชิงสร้างสรรค์",
-  },
-  {
-    id: "TR-004",
-    title: "ภาวะผู้นำและการบริหารทีมงาน",
-    category: "การจัดการ", status: "completed",
-    date: "1 มิ.ย. 2568", hours: 16,
-    instructor: "ผศ.ดร.วิไลพร จันทรา",
-    location: "ห้องประชุมชั้น 10 อาคาร UGI Tower",
-    company: "บริษัท UGI จำกัด (มหาชน)",
-    participants: ["EMP-001","EMP-002","EMP-005","EMP-008","EMP-010","EMP-012","EMP-013","EMP-006"],
-  },
-  {
-    id: "TR-005",
-    title: "การใช้อุปกรณ์ป้องกันส่วนบุคคล (PPE)",
-    category: "ความปลอดภัย", status: "completed",
-    date: "25 พ.ค. 2568", hours: 3,
-    instructor: "เจ้าหน้าที่ความปลอดภัย",
-    location: "โรงงาน UGI Services",
-    company: "บริษัท UGI เซอร์วิสเซส จำกัด", department: "ฝ่ายความปลอดภัย",
-    participants: ["EMP-012","EMP-013","EMP-014","EMP-001","EMP-002","EMP-003","EMP-004","EMP-005","EMP-006","EMP-007"],
-  },
-  {
-    id: "TR-006",
-    title: "การบำรุงรักษาเครื่องจักรเชิงป้องกัน (PM)",
-    category: "ทักษะวิชาชีพ", status: "cancelled",
-    date: "10 มิ.ย. 2568", hours: 8,
-    instructor: "ผู้เชี่ยวชาญจาก Siemens Thailand",
-    location: "ห้องฝึกอบรมวิศวกรรม",
-    company: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด", department: "ฝ่ายวิศวกรรม",
-    participants: [],
-    note: "ยกเลิกเนื่องจากวิทยากรติดภารกิจ จะจัดใหม่เดือน ก.ค.",
-  },
-  {
-    id: "TR-007",
-    title: "เทคนิคการนำเสนองานอย่างมืออาชีพ",
-    category: "ทักษะทั่วไป", status: "completed",
-    date: "18 พ.ค. 2568", hours: 6,
-    instructor: "อ.ณัฐพร สุขสม",
-    location: "ห้อง Training Center ชั้น 4",
-    company: "บริษัท UGI จำกัด (มหาชน)", department: "ฝ่าย HR",
-    participants: ["EMP-008","EMP-009","EMP-010","EMP-001","EMP-005","EMP-012"],
-  },
-  {
-    id: "TR-008",
-    title: "การวางแผนกลยุทธ์องค์กร ประจำปี 2568",
-    category: "การจัดการ", status: "in_progress",
-    date: "22 มิ.ย. 2568", endDate: "23 มิ.ย. 2568", hours: 14,
-    instructor: "ที่ปรึกษาจาก McKinsey Thailand",
-    location: "โรงแรม Anantara Bangkok",
-    company: "บริษัท UGI จำกัด (มหาชน)",
-    participants: ["EMP-001","EMP-005","EMP-008","EMP-010","EMP-013","EMP-002"],
-    note: "สัมมนาผู้บริหารระดับสูง",
-  },
-];
+// ── Firestore CRUD ─────────────────────────────────────────────
+export async function fetchTrainings(): Promise<TrainingRecord[]> {
+  const snap = await getDocs(trainingRef());
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as TrainingRecord));
+}
+
+export async function fetchTraining(id: string): Promise<TrainingRecord | null> {
+  const snap = await getDoc(trainingDocRef(id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as TrainingRecord;
+}
+
+export async function createTraining(data: Omit<TrainingRecord, "id">): Promise<string> {
+  const ref = await addDoc(trainingRef(), data);
+  return ref.id;
+}
+
+export async function updateTraining(id: string, data: Partial<Omit<TrainingRecord, "id">>): Promise<void> {
+  await updateDoc(trainingDocRef(id), data);
+}
+
+export async function deleteTraining(id: string): Promise<void> {
+  await deleteDoc(trainingDocRef(id));
+}
+
+export async function updateTrainingParticipants(id: string, participants: string[]): Promise<void> {
+  await updateDoc(trainingDocRef(id), { participants });
+}

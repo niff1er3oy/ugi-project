@@ -20,6 +20,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [officeId, setOfficeId] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,9 +31,13 @@ export default function RegisterPage() {
     setPhotoPreview(URL.createObjectURL(file));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    if (officeId.trim() !== process.env.NEXT_PUBLIC_OFFICE_ID) {
+      setError("รหัส Office ไม่ถูกต้อง กรุณาติดต่อผู้ดูแลระบบ");
+      return;
+    }
     if (password !== confirm) { setError("รหัสผ่านไม่ตรงกัน"); return; }
     if (password.length < 8) { setError("รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร"); return; }
     setLoading(true);
@@ -52,6 +57,7 @@ export default function RegisterPage() {
       });
 
       await setDoc(doc(db, "users", user.uid), {
+        role: "officer",
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         position: position.trim(),
@@ -251,6 +257,21 @@ export default function RegisterPage() {
               />
             </div>
 
+            <div className="flex flex-col gap-[7px]">
+              <label htmlFor="officeId" className="text-[13.5px] font-medium text-ink leading-none">รหัส Office</label>
+              <input
+                id="officeId"
+                type="text"
+                required
+                value={officeId}
+                onChange={(e) => setOfficeId(e.target.value)}
+                disabled={loading}
+                className="field-input font-mono"
+                style={{ padding: "10px 14px", fontSize: "15px" }}
+                placeholder="ขอรหัสจากผู้ดูแลระบบ"
+              />
+            </div>
+
             {error && (
               <p key={error} role="alert" className="animate-shake text-[13px] text-error leading-[1.45]">{error}</p>
             )}
@@ -269,6 +290,10 @@ export default function RegisterPage() {
           <p className="mt-7 text-center text-[13px] text-muted">
             มีบัญชีอยู่แล้ว?{" "}
             <Link href="/login" className="font-medium text-primary-text hover:underline">เข้าสู่ระบบ</Link>
+          </p>
+          <p className="mt-3 text-center text-[13px] text-muted">
+            สมัครในฐานะพนักงาน?{" "}
+            <Link href="/employee/register" className="font-medium text-primary-text hover:underline">สมัครพนักงาน</Link>
           </p>
         </div>
       </main>

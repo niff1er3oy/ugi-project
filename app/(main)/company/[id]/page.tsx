@@ -2,31 +2,23 @@
 
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import { Section, InfoRow } from "@/components/detail-section";
 import TeamManager from "@/components/team-manager";
-import { COMPANIES, getCompanyStats, type Company } from "@/lib/companies";
+import { fetchCompany, getCompanyStats, type Company } from "@/lib/companies";
+import { fetchEmployees, type Employee } from "@/lib/employees";
 
 function CompanyLogo({ company, size = 72 }: { company: Company; size?: number }) {
   const initials = company.shortName.replace(/[^A-Z]/g, "").slice(0, 2) || company.shortName.slice(0, 2).toUpperCase();
   return (
     <div
       className="flex items-center justify-center overflow-hidden rounded-[18px] font-bold shadow-sm ring-4 ring-background"
-      style={{
-        width: size, height: size,
-        backgroundColor: company.bg,
-        color: company.color,
-        fontSize: size * 0.28,
-      }}
+      style={{ width: size, height: size, backgroundColor: company.bg, color: company.color, fontSize: size * 0.28 }}
     >
       {company.logoURL ? (
         <img src={company.logoURL} alt={company.shortName} className="h-full w-full object-contain p-[12%]" />
-      ) : (
-        initials
-      )}
+      ) : initials}
     </div>
   );
 }
@@ -35,17 +27,17 @@ function CompanyLogo({ company, size = 72 }: { company: Company; size?: number }
 export default function CompanyDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [company, setCompany] = useState<Company | null>(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
-      if (!user) router.replace("/login");
-      else setReady(true);
+    Promise.all([fetchCompany(params.id), fetchEmployees()]).then(([co, emps]) => {
+      setCompany(co);
+      setEmployees(emps);
+      setLoading(false);
     });
-  }, [router]);
-
-  const company = COMPANIES.find((c) => c.id === params.id);
-  const stats = company ? getCompanyStats(company.name) : null;
+  }, [params.id]);
 
   const editButton = (
     <button
@@ -59,7 +51,7 @@ export default function CompanyDetailPage() {
     </button>
   );
 
-  if (!ready) {
+  if (loading) {
     return (
       <>
         <Navbar title="รายละเอียดบริษัท" />
@@ -100,7 +92,7 @@ export default function CompanyDetailPage() {
     );
   }
 
-  if (!company || !stats) {
+  if (!company) {
     return (
       <>
         <Navbar title="รายละเอียดบริษัท" />
@@ -116,6 +108,8 @@ export default function CompanyDetailPage() {
       </>
     );
   }
+
+  const stats = getCompanyStats(company.name, employees);
 
   return (
     <>
@@ -167,37 +161,20 @@ export default function CompanyDetailPage() {
         {(company.phone || company.email || company.website) && (
           <div className="mb-5 flex gap-3">
             {company.phone && (
-              <a
-                href={`tel:${company.phone}`}
-                className="flex flex-1 items-center justify-center gap-2 rounded-[10px] border border-border bg-background py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-[0.98]"
-              >
-                <svg className="h-4 w-4 text-primary-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z" />
-                </svg>
+              <a href={`tel:${company.phone}`} className="flex flex-1 items-center justify-center gap-2 rounded-[10px] border border-border bg-background py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-[0.98]">
+                <svg className="h-4 w-4 text-primary-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z" /></svg>
                 โทร
               </a>
             )}
             {company.email && (
-              <a
-                href={`mailto:${company.email}`}
-                className="flex flex-1 items-center justify-center gap-2 rounded-[10px] border border-border bg-background py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-[0.98]"
-              >
-                <svg className="h-4 w-4 text-primary-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                </svg>
+              <a href={`mailto:${company.email}`} className="flex flex-1 items-center justify-center gap-2 rounded-[10px] border border-border bg-background py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-[0.98]">
+                <svg className="h-4 w-4 text-primary-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
                 อีเมล
               </a>
             )}
             {company.website && (
-              <a
-                href={company.website.startsWith("http") ? company.website : `https://${company.website}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-1 items-center justify-center gap-2 rounded-[10px] border border-border bg-background py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-[0.98]"
-              >
-                <svg className="h-4 w-4 text-primary-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
-                </svg>
+              <a href={company.website.startsWith("http") ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-[10px] border border-border bg-background py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-[0.98]">
+                <svg className="h-4 w-4 text-primary-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>
                 เว็บไซต์
               </a>
             )}
@@ -208,29 +185,17 @@ export default function CompanyDetailPage() {
 
           {/* ── ข้อมูลบริษัท ──────────────────────────────────── */}
           <Section label="ข้อมูลบริษัท">
-            <InfoRow labelWidth="w-36" label="เลขทะเบียนนิติบุคคล" value={
-              <span className="font-mono text-[12px]">{company.taxId}</span>
-            } />
+            <InfoRow labelWidth="w-36" label="เลขทะเบียนนิติบุคคล" value={<span className="font-mono text-[12px]">{company.taxId}</span>} />
             <InfoRow labelWidth="w-36" label="ประเภทนิติบุคคล" value={`บริษัท${company.type}`} />
             <InfoRow labelWidth="w-36" label="ปีที่ก่อตั้ง" value={`พ.ศ. ${company.founded}`} />
           </Section>
 
           {/* ── ช่องทางติดต่อ ──────────────────────────────────── */}
           <Section label="ช่องทางติดต่อ">
-            <InfoRow labelWidth="w-36" label="ที่อยู่" value={
-              <span className="text-left leading-relaxed">{company.address}</span>
-            } />
-            <InfoRow labelWidth="w-36" label="โทรศัพท์" value={
-              <a href={`tel:${company.phone}`} className="text-primary-text hover:underline">{company.phone}</a>
-            } />
-            {company.email && (
-              <InfoRow labelWidth="w-36" label="อีเมล" value={
-                <a href={`mailto:${company.email}`} className="break-all text-primary-text hover:underline">{company.email}</a>
-              } />
-            )}
-            <InfoRow labelWidth="w-36" label="เว็บไซต์" value={
-              <span className="text-primary-text">{company.website}</span>
-            } />
+            <InfoRow labelWidth="w-36" label="ที่อยู่" value={<span className="text-left leading-relaxed">{company.address}</span>} />
+            <InfoRow labelWidth="w-36" label="โทรศัพท์" value={<a href={`tel:${company.phone}`} className="text-primary-text hover:underline">{company.phone}</a>} />
+            {company.email && <InfoRow labelWidth="w-36" label="อีเมล" value={<a href={`mailto:${company.email}`} className="break-all text-primary-text hover:underline">{company.email}</a>} />}
+            <InfoRow labelWidth="w-36" label="เว็บไซต์" value={<span className="text-primary-text">{company.website}</span>} />
           </Section>
 
           {/* ── ทีมในบริษัท ───────────────────────────────────── */}
@@ -250,14 +215,10 @@ export default function CompanyDetailPage() {
             className="flex items-center justify-between rounded-[12px] border border-border bg-background px-4 py-3.5 text-[13px] font-medium text-ink transition-colors hover:bg-surface animate-enter"
           >
             <span className="flex items-center gap-3">
-              <svg className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-              </svg>
+              <svg className="h-5 w-5 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
               ดูพนักงานทั้งหมด ({stats.total} คน)
             </span>
-            <svg className="h-4 w-4 text-muted" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
+            <svg className="h-4 w-4 text-muted" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
           </Link>
 
         </div>

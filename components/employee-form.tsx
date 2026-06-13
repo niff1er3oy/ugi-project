@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { uploadFile } from "@/lib/upload";
-import { COMPANIES, COMPANY_DEPARTMENTS, DEPT_CONFIG, STATUS_CONFIG, type Employee, type EmpStatus } from "@/lib/employees";
+import { DEPT_CONFIG, STATUS_CONFIG, type Employee, type EmpStatus } from "@/lib/employees";
+import { fetchCompanies, type Company } from "@/lib/companies";
 
 export type EmployeeFormData = Omit<Employee, "id">;
 
@@ -131,19 +132,34 @@ export default function EmployeeForm({
   onCancel: () => void;
   submitLabel?: string;
 }) {
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [form, setForm] = useState<EmployeeFormData>({
-    firstName: defaultValues?.firstName ?? "",
-    lastName: defaultValues?.lastName ?? "",
-    company: defaultValues?.company ?? COMPANIES[0],
-    department: defaultValues?.department ?? (COMPANY_DEPARTMENTS[defaultValues?.company ?? COMPANIES[0]]?.[0] ?? ""),
-    position: defaultValues?.position ?? "",
-    status: defaultValues?.status ?? "active",
-    phone: defaultValues?.phone ?? "",
-    email: defaultValues?.email ?? "",
-    startDate: defaultValues?.startDate ?? "",
-    photoURL: defaultValues?.photoURL,
+    firstName:  defaultValues?.firstName  ?? "",
+    lastName:   defaultValues?.lastName   ?? "",
+    company:    defaultValues?.company    ?? "",
+    department: defaultValues?.department ?? "",
+    position:   defaultValues?.position   ?? "",
+    status:     defaultValues?.status     ?? "active",
+    phone:      defaultValues?.phone      ?? "",
+    email:      defaultValues?.email      ?? "",
+    startDate:  defaultValues?.startDate  ?? "",
+    photoURL:   defaultValues?.photoURL,
   });
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    fetchCompanies().then((cos) => {
+      setCompanies(cos);
+      if (!defaultValues?.company && cos.length > 0) {
+        setForm((f) => ({
+          ...f,
+          company:    f.company    || cos[0].name,
+          department: f.department || cos[0].departments[0] || "",
+        }));
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function set<K extends keyof EmployeeFormData>(key: K, value: EmployeeFormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -164,12 +180,14 @@ export default function EmployeeForm({
     }
   }
 
-  const availableDepts = COMPANY_DEPARTMENTS[form.company] ?? [];
+  const currentCompany = companies.find((c) => c.name === form.company);
+  const availableDepts = currentCompany?.departments ?? [];
   const dept = DEPT_CONFIG[form.department];
   const initials = (form.firstName.charAt(0) || "?") + (form.lastName.charAt(0) || "");
 
   function handleCompanyChange(company: string) {
-    const depts = COMPANY_DEPARTMENTS[company] ?? [];
+    const co = companies.find((c) => c.name === company);
+    const depts = co?.departments ?? [];
     setForm((f) => ({
       ...f,
       company,
@@ -220,7 +238,10 @@ export default function EmployeeForm({
             value={form.company}
             onChange={(e) => handleCompanyChange(e.target.value)}
           >
-            {COMPANIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {form.company && !companies.find((c) => c.name === form.company) && (
+              <option value={form.company}>{form.company}</option>
+            )}
+            {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
         </Field>
         <div className="grid grid-cols-2 gap-3">
@@ -230,6 +251,9 @@ export default function EmployeeForm({
               value={form.department}
               onChange={(e) => set("department", e.target.value)}
             >
+              {form.department && !availableDepts.includes(form.department) && (
+                <option value={form.department}>{form.department}</option>
+              )}
               {availableDepts.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
           </Field>

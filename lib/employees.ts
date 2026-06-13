@@ -1,3 +1,6 @@
+import { getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
+import { employeesRef, employeeRef, historyRef } from "@/lib/db";
+
 // ── Types ──────────────────────────────────────────────────────
 export type EmpStatus = "active" | "leave" | "resigned";
 
@@ -38,83 +41,37 @@ export const STATUS_CONFIG: Record<EmpStatus, { label: string; dot: string; bg: 
 
 export const DEPARTMENTS = Object.keys(DEPT_CONFIG);
 
-export const COMPANIES = [
-  "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",
-  "บริษัท UGI จำกัด (มหาชน)",
-  "บริษัท UGI เซอร์วิสเซส จำกัด",
-];
+// ── Firestore CRUD ─────────────────────────────────────────────
+export async function fetchEmployees(): Promise<Employee[]> {
+  const snap = await getDocs(query(employeesRef(), orderBy("firstName")));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Employee));
+}
 
-export const COMPANY_DEPARTMENTS: Record<string, string[]> = {
-  "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด":  ["ฝ่ายผลิต", "ฝ่ายวิศวกรรม"],
-  "บริษัท UGI จำกัด (มหาชน)":           ["ฝ่าย HR", "ฝ่ายบัญชี"],
-  "บริษัท UGI เซอร์วิสเซส จำกัด":       ["ฝ่ายความปลอดภัย"],
-};
+export async function fetchEmployee(id: string): Promise<Employee | null> {
+  const snap = await getDoc(employeeRef(id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as Employee;
+}
 
-// ── Mock data ──────────────────────────────────────────────────
-export const EMPLOYEES: Employee[] = [
-  { id: "EMP-001", firstName: "สมชาย",    lastName: "กิจจา",      department: "ฝ่ายผลิต",        status: "active",   company: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",   position: "ผู้จัดการฝ่ายผลิต",       phone: "081-234-5678", email: "somchai.k@ugi.co.th",   startDate: "1 ม.ค. 2560"  },
-  { id: "EMP-002", firstName: "วิชัย",     lastName: "นวลจันทร์",  department: "ฝ่ายผลิต",        status: "active",   company: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",   position: "หัวหน้างานผลิต",          phone: "082-345-6789", email: "wichai.n@ugi.co.th",    startDate: "3 มี.ค. 2561" },
-  { id: "EMP-003", firstName: "นภา",       lastName: "มากมี",      department: "ฝ่ายผลิต",        status: "leave",    company: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",   position: "เจ้าหน้าที่ฝ่ายผลิต",    phone: "083-456-7890", email: "napa.m@ugi.co.th",      startDate: "5 มิ.ย. 2563" },
-  { id: "EMP-004", firstName: "กิตติ",     lastName: "ขาวสะอาด",   department: "ฝ่ายผลิต",        status: "active",   company: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",   position: "ช่างเทคนิคผลิต",         phone: "084-567-8901", email: "kitti.k@ugi.co.th",     startDate: "12 ส.ค. 2564" },
-  { id: "EMP-005", firstName: "วีระ",      lastName: "ศรีสุข",     department: "ฝ่ายวิศวกรรม",    status: "active",   company: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",   position: "วิศวกรอาวุโส",           phone: "085-678-9012", email: "veera.s@ugi.co.th",     startDate: "8 ก.พ. 2559"  },
-  { id: "EMP-006", firstName: "ประสิทธิ์", lastName: "รัตนชัย",    department: "ฝ่ายวิศวกรรม",    status: "active",   company: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",   position: "วิศวกรระบบไฟฟ้า",        phone: "086-789-0123", email: "prasit.r@ugi.co.th",    startDate: "20 เม.ย. 2562"},
-  { id: "EMP-007", firstName: "สุวรรณ",    lastName: "ดีเลิศ",     department: "ฝ่ายวิศวกรรม",    status: "leave",    company: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",   position: "ช่างเทคนิคซ่อมบำรุง",   phone: "087-890-1234", email: "suwan.d@ugi.co.th",     startDate: "7 ก.ค. 2565"  },
-  { id: "EMP-008", firstName: "มาลี",      lastName: "สุดสวย",     department: "ฝ่าย HR",         status: "active",   company: "บริษัท UGI จำกัด (มหาชน)",           position: "ผู้จัดการฝ่าย HR",        phone: "088-901-2345", email: "malee.s@ugi.co.th",     startDate: "15 ต.ค. 2558" },
-  { id: "EMP-009", firstName: "รัตนา",     lastName: "พงษ์พาณิช",  department: "ฝ่าย HR",         status: "active",   company: "บริษัท UGI จำกัด (มหาชน)",           position: "เจ้าหน้าที่ HR",          phone: "089-012-3456", email: "rattana.p@ugi.co.th",   startDate: "2 พ.ย. 2566"  },
-  { id: "EMP-010", firstName: "อนุชา",     lastName: "ป่าสมบูรณ์",  department: "ฝ่ายบัญชี",       status: "active",   company: "บริษัท UGI จำกัด (มหาชน)",           position: "ผู้จัดการฝ่ายบัญชี",      phone: "081-123-4567", email: "anucha.p@ugi.co.th",    startDate: "11 ธ.ค. 2557" },
-  { id: "EMP-011", firstName: "จิตร์",     lastName: "ใจดี",       department: "ฝ่ายบัญชี",       status: "resigned", company: "บริษัท UGI จำกัด (มหาชน)",           position: "นักบัญชีอาวุโส",          phone: "082-234-5678", email: "jit.j@ugi.co.th",       startDate: "18 ม.ค. 2563" },
-  { id: "EMP-012", firstName: "ปิยะ",      lastName: "สวัสดิ์มงคล", department: "ฝ่ายความปลอดภัย", status: "active",   company: "บริษัท UGI เซอร์วิสเซส จำกัด",       position: "เจ้าหน้าที่ความปลอดภัย", phone: "083-345-6789", email: "piya.s@ugi.co.th",      startDate: "24 มี.ค. 2561"},
-  { id: "EMP-013", firstName: "บุญมี",     lastName: "แดงเข้ม",    department: "ฝ่ายความปลอดภัย", status: "active",   company: "บริษัท UGI เซอร์วิสเซส จำกัด",       position: "หัวหน้างานความปลอดภัย",  phone: "084-456-7890", email: "boonmee.d@ugi.co.th",   startDate: "9 มิ.ย. 2560"  },
-  { id: "EMP-014", firstName: "สมพงษ์",    lastName: "ทองคำ",      department: "ฝ่ายความปลอดภัย", status: "leave",    company: "บริษัท UGI เซอร์วิสเซส จำกัด",       position: "เจ้าหน้าที่ความปลอดภัย", phone: "085-567-8901", email: "sompong.t@ugi.co.th",   startDate: "30 ส.ค. 2567" },
-];
+export async function createEmployee(data: Omit<Employee, "id">): Promise<string> {
+  const ref = await addDoc(employeesRef(), data);
+  return ref.id;
+}
 
-// ── ประวัติพนักงาน (newest first) ─────────────────────────────
-export const EMPLOYEE_HISTORY: Record<string, HistoryEntry[]> = {
-  "EMP-001": [
-    { date: "1 ม.ค. 2560",   status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-002": [
-    { date: "3 มี.ค. 2561",  status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-003": [
-    { date: "10 เม.ย. 2567", status: "leave",    note: "ลาพักร้อน" },
-    { date: "5 มิ.ย. 2563",  status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-004": [
-    { date: "12 ส.ค. 2564",  status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-005": [
-    { date: "8 ก.พ. 2559",   status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-006": [
-    { date: "20 เม.ย. 2562", status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-007": [
-    { date: "2 พ.ค. 2567",   status: "leave",    note: "ลาป่วย" },
-    { date: "7 ก.ค. 2565",   status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-008": [
-    { date: "15 ต.ค. 2558",  status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-009": [
-    { date: "2 พ.ย. 2566",   status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-010": [
-    { date: "11 ธ.ค. 2557",  status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-011": [
-    { date: "1 ส.ค. 2567",   status: "resigned", note: "ลาออก" },
-    { date: "20 มิ.ย. 2566", status: "leave",    note: "ลาพักร้อน" },
-    { date: "18 ม.ค. 2563",  status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-012": [
-    { date: "24 มี.ค. 2561", status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-013": [
-    { date: "9 มิ.ย. 2560",  status: "active",   note: "เริ่มงาน" },
-  ],
-  "EMP-014": [
-    { date: "5 ก.ย. 2567",   status: "leave",    note: "ลาพักร้อน" },
-    { date: "30 ส.ค. 2567",  status: "active",   note: "เริ่มงาน" },
-  ],
-};
+export async function updateEmployee(id: string, data: Partial<Omit<Employee, "id">>): Promise<void> {
+  await updateDoc(employeeRef(id), data);
+}
+
+export async function deleteEmployee(id: string): Promise<void> {
+  await deleteDoc(employeeRef(id));
+}
+
+// ── History subcollection ──────────────────────────────────────
+export async function fetchEmployeeHistory(empId: string): Promise<HistoryEntry[]> {
+  const snap = await getDocs(historyRef(empId));
+  return snap.docs.map((d) => d.data() as HistoryEntry);
+}
+
+export async function addEmployeeHistory(empId: string, entry: HistoryEntry): Promise<void> {
+  await addDoc(historyRef(empId), entry);
+}

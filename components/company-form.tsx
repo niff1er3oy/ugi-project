@@ -150,20 +150,22 @@ export default function CompanyForm({
   submitLabel?: string;
 }) {
   const [form, setForm] = useState<CompanyFormData>({
-    name:      defaultValues?.name      ?? "",
-    shortName: defaultValues?.shortName ?? "",
-    type:      defaultValues?.type      ?? "จำกัด",
-    taxId:     defaultValues?.taxId     ?? "",
-    address:   defaultValues?.address   ?? "",
-    phone:     defaultValues?.phone     ?? "",
-    email:     defaultValues?.email     ?? "",
-    website:   defaultValues?.website   ?? "",
-    founded:   defaultValues?.founded   ?? "",
-    color:     defaultValues?.color     ?? DEFAULT_COLOR.color,
-    bg:        defaultValues?.bg        ?? DEFAULT_COLOR.bg,
-    logoURL:   defaultValues?.logoURL,
+    name:        defaultValues?.name        ?? "",
+    shortName:   defaultValues?.shortName   ?? "",
+    type:        defaultValues?.type        ?? "จำกัด",
+    taxId:       defaultValues?.taxId       ?? "",
+    address:     defaultValues?.address     ?? "",
+    phone:       defaultValues?.phone       ?? "",
+    email:       defaultValues?.email       ?? "",
+    website:     defaultValues?.website     ?? "",
+    founded:     defaultValues?.founded     ?? "",
+    color:       defaultValues?.color       ?? DEFAULT_COLOR.color,
+    bg:          defaultValues?.bg          ?? DEFAULT_COLOR.bg,
+    logoURL:     defaultValues?.logoURL,
+    departments: defaultValues?.departments ?? [],
   });
   const [uploading, setUploading] = useState(false);
+  const [deptInput, setDeptInput] = useState("");
 
   function set<K extends keyof CompanyFormData>(key: K, value: CompanyFormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -292,6 +294,60 @@ export default function CompanyForm({
             rows={3}
           />
         </Field>
+      </FormSection>
+
+      <FormSection label="แผนก">
+        <div className="flex flex-wrap gap-2">
+          {form.departments.map((dept) => (
+            <span
+              key={dept}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-ink"
+            >
+              {dept}
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, departments: f.departments.filter((d) => d !== dept) }))}
+                aria-label={`ลบ ${dept}`}
+                className="flex h-4 w-4 items-center justify-center rounded-full text-muted hover:bg-error hover:text-white transition-colors"
+              >
+                <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            className="field-input flex-1"
+            value={deptInput}
+            onChange={(e) => setDeptInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const d = deptInput.trim();
+                if (d && !form.departments.includes(d)) {
+                  setForm((f) => ({ ...f, departments: [...f.departments, d] }));
+                }
+                setDeptInput("");
+              }
+            }}
+            placeholder="เช่น ฝ่ายผลิต, ฝ่ายวิศวกรรม"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const d = deptInput.trim();
+              if (d && !form.departments.includes(d)) {
+                setForm((f) => ({ ...f, departments: [...f.departments, d] }));
+              }
+              setDeptInput("");
+            }}
+            className="rounded-[8px] border border-border bg-background px-3 py-2 text-[12px] font-medium text-ink hover:bg-surface active:scale-[0.98]"
+          >
+            เพิ่ม
+          </button>
+        </div>
       </FormSection>
 
       <FormSection label="สีบริษัท">

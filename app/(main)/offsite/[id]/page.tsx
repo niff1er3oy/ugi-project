@@ -2,30 +2,27 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
 import { Section, InfoRow } from "@/components/detail-section";
 import { DepartmentChip } from "@/components/department-chip";
-import { ALL_TASKS, STATUS_CONFIG, TYPE_CONFIG } from "@/lib/offsite-tasks";
+import { fetchTask, deleteTask, STATUS_CONFIG, TYPE_CONFIG, type OffsiteTask } from "@/lib/offsite-tasks";
 
 export default function OffsiteDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [task, setTask] = useState<OffsiteTask | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
-      if (!user) router.replace("/login");
-      else setReady(true);
+    fetchTask(params.id).then((data) => {
+      setTask(data);
+      setLoading(false);
     });
-  }, [router]);
+  }, [params.id]);
 
-  const task = ALL_TASKS.find((t) => t.id === params.id);
-
-  function handleDelete() {
-    // TODO: delete from Firestore then navigate
+  async function handleDelete() {
+    await deleteTask(params.id);
     router.back();
   }
 
@@ -41,7 +38,7 @@ export default function OffsiteDetailPage() {
     </button>
   );
 
-  if (!ready) {
+  if (loading) {
     return (
       <>
         <Navbar title="รายละเอียดงาน" />
@@ -137,7 +134,6 @@ export default function OffsiteDetailPage() {
               </div>
             </div>
           </div>
-
         </div>
 
         <div className="space-y-5">

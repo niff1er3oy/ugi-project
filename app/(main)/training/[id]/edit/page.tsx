@@ -1,28 +1,30 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
-import TrainingForm from "@/components/training-form";
-import { ALL_RECORDS } from "@/lib/training";
+import TrainingForm, { type TrainingFormData } from "@/components/training-form";
+import { fetchTraining, updateTraining, type TrainingRecord } from "@/lib/training";
 
 export default function TrainingEditPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [record, setRecord] = useState<TrainingRecord | null>(null);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
-      if (!user) router.replace("/login");
-      else setReady(true);
+    fetchTraining(params.id).then((data) => {
+      setRecord(data);
+      setLoading(false);
     });
-  }, [router]);
+  }, [params.id]);
 
-  const record = ALL_RECORDS.find((r) => r.id === params.id);
+  async function handleSubmit(data: TrainingFormData) {
+    await updateTraining(params.id, data);
+    router.back();
+  }
 
-  if (!ready) {
+  if (loading) {
     return (
       <>
         <Navbar title="แก้ไขการอบรม" />
@@ -59,7 +61,7 @@ export default function TrainingEditPage() {
         <TrainingForm
           defaultValues={record}
           submitLabel="บันทึกการเปลี่ยนแปลง"
-          onSubmit={() => { /* TODO: update in Firestore */ router.back(); }}
+          onSubmit={handleSubmit}
           onCancel={() => router.back()}
         />
       </main>

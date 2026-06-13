@@ -1,33 +1,30 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import EmployeeForm, { type EmployeeFormData } from "@/components/employee-form";
-import { EMPLOYEES } from "@/lib/employees";
+import { fetchEmployee, updateEmployee, DEPT_CONFIG, type Employee } from "@/lib/employees";
 
 export default function EditEmployeePage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [emp, setEmp] = useState<Employee | null>(null);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
-      if (!user) router.replace("/login");
-      else setReady(true);
+    fetchEmployee(params.id).then((data) => {
+      setEmp(data);
+      setLoading(false);
     });
-  }, [router]);
+  }, [params.id]);
 
-  const emp = EMPLOYEES.find((e) => e.id === params.id);
-
-  function handleSubmit(data: EmployeeFormData) {
-    // TODO: update in Firestore, then navigate
+  async function handleSubmit(data: EmployeeFormData) {
+    await updateEmployee(params.id, data);
     router.back();
   }
 
-  if (!ready) {
+  if (loading) {
     return (
       <>
         <Navbar title="แก้ไขข้อมูลพนักงาน" />
@@ -69,6 +66,8 @@ export default function EditEmployeePage() {
     );
   }
 
+  const dept = DEPT_CONFIG[emp.department];
+
   return (
     <>
       <Navbar title="แก้ไขข้อมูลพนักงาน" />
@@ -76,7 +75,7 @@ export default function EditEmployeePage() {
         <div className="mb-6 flex items-center gap-3">
           <div
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold text-[14px]"
-            style={{ backgroundColor: "var(--surface)", color: "var(--muted)" }}
+            style={{ backgroundColor: dept?.bg ?? "var(--surface)", color: dept?.color ?? "var(--muted)" }}
           >
             {emp.firstName.charAt(0)}{emp.lastName.charAt(0)}
           </div>

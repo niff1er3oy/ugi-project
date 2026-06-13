@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { uploadFile } from "@/lib/upload";
-import { COMPANY_DEPARTMENTS } from "@/lib/employees";
+import { DEPARTMENTS } from "@/lib/employees";
 import {
   TYPE_CONFIG, STATUS_CONFIG,
   type WorkType, type WorkStatus, type OffsiteTask,
@@ -10,7 +10,7 @@ import {
 
 export type OffsiteTaskFormData = Omit<OffsiteTask, "id">;
 
-const ALL_DEPARTMENTS = [...new Set(Object.values(COMPANY_DEPARTMENTS).flat())];
+const ALL_DEPARTMENTS = DEPARTMENTS;
 const WORK_TYPES: WorkType[] = ["ซ่อมบำรุง", "ติดตั้ง", "ตรวจสอบ", "อื่นๆ"];
 const WORK_STATUSES: WorkStatus[] = ["pending", "in_progress", "completed", "cancelled"];
 const NEEDS_END = (s: WorkStatus) => s === "completed" || s === "cancelled";

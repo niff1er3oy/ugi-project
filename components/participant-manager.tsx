@@ -1,41 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { EMPLOYEES, DEPT_CONFIG } from "@/lib/employees";
+import { fetchEmployees, DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { updateTrainingParticipants } from "@/lib/training";
 
 type Mode = "view" | "remove" | "add";
 
-function EmpAvatar({ empId }: { empId: string }) {
-  const emp = EMPLOYEES.find((e) => e.id === empId);
-  if (!emp) return null;
-  const dept = DEPT_CONFIG[emp.department];
-  const initials = emp.firstName.charAt(0) + emp.lastName.charAt(0);
-  return (
-    <div
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
-      style={{ backgroundColor: dept?.bg ?? "var(--surface)", color: dept?.color ?? "var(--muted)" }}
-    >
-      {initials}
-    </div>
-  );
-}
-
 export default function ParticipantManager({
+  trainingId,
   participants: initial,
 }: {
+  trainingId: string;
   participants: string[];
 }) {
   const router = useRouter();
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [participants, setParticipants] = useState(initial);
   const [mode, setMode] = useState<Mode>("view");
   const [addSearch, setAddSearch] = useState("");
 
-  const members = participants
-    .map((id) => EMPLOYEES.find((e) => e.id === id))
-    .filter(Boolean) as typeof EMPLOYEES;
+  useEffect(() => {
+    fetchEmployees().then(setAllEmployees);
+  }, []);
 
-  const available = EMPLOYEES.filter((e) => !participants.includes(e.id));
+  const members = participants
+    .map((id) => allEmployees.find((e) => e.id === id))
+    .filter(Boolean) as Employee[];
+
+  const available = allEmployees.filter((e) => !participants.includes(e.id));
 
   const filteredAvailable = available.filter((emp) => {
     if (!addSearch) return true;
@@ -45,14 +38,16 @@ export default function ParticipantManager({
       .includes(q);
   });
 
-  function remove(id: string) {
-    setParticipants((p) => p.filter((x) => x !== id));
-    // TODO: update in Firestore
+  async function remove(id: string) {
+    const next = participants.filter((x) => x !== id);
+    setParticipants(next);
+    await updateTrainingParticipants(trainingId, next);
   }
 
-  function add(id: string) {
-    setParticipants((p) => [...p, id]);
-    // TODO: update in Firestore
+  async function add(id: string) {
+    const next = [...participants, id];
+    setParticipants(next);
+    await updateTrainingParticipants(trainingId, next);
   }
 
   function closeAdd() {
@@ -118,7 +113,6 @@ export default function ParticipantManager({
       {/* Card */}
       <div className="overflow-hidden rounded-[12px] border border-border bg-background divide-y divide-border">
 
-        {/* Empty state */}
         {members.length === 0 && mode !== "add" && (
           <div className="flex flex-col items-center py-6 text-center">
             <p className="text-[13px] text-muted">ยังไม่มีผู้เข้าร่วม</p>
@@ -133,7 +127,6 @@ export default function ParticipantManager({
           </div>
         )}
 
-        {/* Participant rows */}
         {members.map((emp) => {
           const dept = DEPT_CONFIG[emp.department];
           const initials = emp.firstName.charAt(0) + emp.lastName.charAt(0);
@@ -146,9 +139,7 @@ export default function ParticipantManager({
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium text-ink">
-                  {emp.firstName} {emp.lastName}
-                </p>
+                <p className="text-[13px] font-medium text-ink">{emp.firstName} {emp.lastName}</p>
                 <p className="text-[11px] text-muted">{emp.position}</p>
               </div>
             </>
@@ -194,7 +185,6 @@ export default function ParticipantManager({
           );
         })}
 
-        {/* Add picker */}
         {mode === "add" && (
           <div>
             <div className="px-3 py-2 border-b border-border">
@@ -242,15 +232,10 @@ export default function ParticipantManager({
                         {emp.firstName.charAt(0)}{emp.lastName.charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-medium text-ink">
-                          {emp.firstName} {emp.lastName}
-                        </p>
+                        <p className="text-[13px] font-medium text-ink">{emp.firstName} {emp.lastName}</p>
                         <p className="text-[11px] text-muted">{emp.position}</p>
                       </div>
-                      <svg
-                        className="h-4 w-4 shrink-0 text-primary-text"
-                        fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"
-                      >
+                      <svg className="h-4 w-4 shrink-0 text-primary-text" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                       </svg>
                     </button>

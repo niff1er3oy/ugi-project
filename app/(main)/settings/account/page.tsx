@@ -30,7 +30,7 @@ export default function AccountSettingsPage() {
 
   const isDirty = displayName !== (user?.displayName ?? "");
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!user || !isDirty) return;
     setSaveState("saving");

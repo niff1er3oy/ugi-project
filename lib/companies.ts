@@ -1,5 +1,8 @@
-import { EMPLOYEES, DEPT_CONFIG } from "./employees";
+import { getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
+import { companiesRef, companyRef } from "@/lib/db";
+import { DEPT_CONFIG, type Employee } from "@/lib/employees";
 
+// ── Types ──────────────────────────────────────────────────────
 export type Company = {
   id: string;
   name: string;
@@ -13,53 +16,9 @@ export type Company = {
   founded: string;
   color: string;
   bg: string;
+  departments: string[];
   logoURL?: string;
 };
-
-export const COMPANIES: Company[] = [
-  {
-    id: "ugi-manufacturing",
-    name: "บริษัท UGI แมนูแฟคเจอริ่ง จำกัด",
-    shortName: "UGI Manufacturing",
-    type: "จำกัด",
-    taxId: "0105556123456",
-    address: "99/1 นิคมอุตสาหกรรมอมตะซิตี้ ชลบุรี 20000",
-    phone: "038-100-200",
-    email: "info@ugi-manufacturing.co.th",
-    website: "www.ugi-manufacturing.co.th",
-    founded: "2556",
-    color: "oklch(0.44 0.27 292)",
-    bg: "oklch(0.94 0.05 292)",
-  },
-  {
-    id: "ugi-public",
-    name: "บริษัท UGI จำกัด (มหาชน)",
-    shortName: "UGI PCL",
-    type: "จำกัด (มหาชน)",
-    taxId: "0107548234567",
-    address: "388 อาคาร UGI ทาวเวอร์ ถ.สีลม บางรัก กรุงเทพฯ 10500",
-    phone: "02-200-3000",
-    email: "info@ugi.co.th",
-    website: "www.ugi.co.th",
-    founded: "2548",
-    color: "oklch(0.42 0.14 195)",
-    bg: "oklch(0.93 0.04 195)",
-  },
-  {
-    id: "ugi-services",
-    name: "บริษัท UGI เซอร์วิสเซส จำกัด",
-    shortName: "UGI Services",
-    type: "จำกัด",
-    taxId: "0105562345678",
-    address: "99/1 นิคมอุตสาหกรรมอมตะซิตี้ ชลบุรี 20000",
-    phone: "038-100-300",
-    email: "info@ugi-services.co.th",
-    website: "www.ugi-services.co.th",
-    founded: "2562",
-    color: "oklch(0.50 0.17 25)",
-    bg: "oklch(0.95 0.04 25)",
-  },
-];
 
 export type CompanyStats = {
   total: number;
@@ -69,8 +28,9 @@ export type CompanyStats = {
   departments: { name: string; count: number; color: string; bg: string }[];
 };
 
-export function getCompanyStats(companyName: string): CompanyStats {
-  const emps = EMPLOYEES.filter((e) => e.company === companyName);
+// ── Helpers ────────────────────────────────────────────────────
+export function getCompanyStats(companyName: string, employees: Employee[]): CompanyStats {
+  const emps = employees.filter((e) => e.company === companyName);
   const deptMap = new Map<string, number>();
   for (const e of emps) {
     deptMap.set(e.department, (deptMap.get(e.department) ?? 0) + 1);
@@ -86,4 +46,29 @@ export function getCompanyStats(companyName: string): CompanyStats {
       bg:    DEPT_CONFIG[name]?.bg    ?? "var(--surface)",
     })),
   };
+}
+
+// ── Firestore CRUD ─────────────────────────────────────────────
+export async function fetchCompanies(): Promise<Company[]> {
+  const snap = await getDocs(query(companiesRef(), orderBy("name")));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Company));
+}
+
+export async function fetchCompany(id: string): Promise<Company | null> {
+  const snap = await getDoc(companyRef(id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as Company;
+}
+
+export async function createCompany(data: Omit<Company, "id">): Promise<string> {
+  const ref = await addDoc(companiesRef(), data);
+  return ref.id;
+}
+
+export async function updateCompany(id: string, data: Partial<Omit<Company, "id">>): Promise<void> {
+  await updateDoc(companyRef(id), data);
+}
+
+export async function deleteCompany(id: string): Promise<void> {
+  await deleteDoc(companyRef(id));
 }

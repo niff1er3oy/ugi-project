@@ -1,8 +1,31 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Each user can only read/write their own profile (role, employeeId)
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Any authenticated user can read company listings (needed for self-registration verification)
+    match /office/{officeId}/companies/{companyId} {
+      allow read: if request.auth != null;
+    }
+
+    // Office data — officers can read+write, employees can read only
+    match /office/{officeId}/{document=**} {
+      allow read: if isStaff() || isEmployee();
+      allow write: if isStaff();
+    }
+
+    function isStaff() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "officer";
+    }
+
+    function isEmployee() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "employee";
     }
   }
 }
