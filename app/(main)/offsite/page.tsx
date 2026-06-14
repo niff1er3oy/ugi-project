@@ -11,6 +11,7 @@ import {
   STATUS_CONFIG, TYPE_CONFIG, STATUS_FILTER_OPTIONS, TYPE_FILTER_OPTIONS,
   type WorkType, type WorkStatus, type OffsiteTask,
 } from "@/lib/offsite-tasks";
+import { fetchAllDepartments } from "@/lib/companies";
 import OffsiteTaskForm, { type OffsiteTaskFormData } from "@/components/offsite-task-form";
 
 // ── Sub-components ─────────────────────────────────────────────
@@ -20,7 +21,7 @@ function TaskTypeIcon({ type, photoURL, size = 40 }: { type: WorkType; photoURL?
   if (photoURL) {
     return (
       <div className={`shrink-0 overflow-hidden ${radius}`} style={{ width: size, height: size }}>
-        <img src={photoURL} alt="" className="h-full w-full object-cover" />
+        <img src={photoURL} alt="" loading="lazy" className="h-full w-full object-cover" />
       </div>
     );
   }
@@ -180,7 +181,7 @@ function OffsiteDetailPanel({ task, onClose, onEdit, onDeleted }: { task: Offsit
   );
 }
 
-function OffsiteEditPanel({ task, onDone, onSaved }: { task: OffsiteTask; onDone: () => void; onSaved: (updated: OffsiteTask) => void }) {
+function OffsiteEditPanel({ task, departments, onDone, onSaved }: { task: OffsiteTask; departments: string[]; onDone: () => void; onSaved: (updated: OffsiteTask) => void }) {
   async function handleSubmit(data: OffsiteTaskFormData) {
     await updateTask(task.id, data);
     onSaved({ ...task, ...data });
@@ -194,12 +195,12 @@ function OffsiteEditPanel({ task, onDone, onSaved }: { task: OffsiteTask; onDone
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
         </button>
       </div>
-      <OffsiteTaskForm defaultValues={task} taskId={task.id} submitLabel="บันทึกการเปลี่ยนแปลง" onSubmit={handleSubmit} onCancel={onDone} />
+      <OffsiteTaskForm defaultValues={task} taskId={task.id} departments={departments} submitLabel="บันทึกการเปลี่ยนแปลง" onSubmit={handleSubmit} onCancel={onDone} />
     </div>
   );
 }
 
-function OffsiteAddPanel({ onDone, onAdded }: { onDone: () => void; onAdded: (t: OffsiteTask) => void }) {
+function OffsiteAddPanel({ departments, onDone, onAdded }: { departments: string[]; onDone: () => void; onAdded: (t: OffsiteTask) => void }) {
   async function handleSubmit(data: OffsiteTaskFormData) {
     const id = await createTask(data as Omit<OffsiteTask, "id">);
     onAdded({ id, ...data } as OffsiteTask);
@@ -213,14 +214,14 @@ function OffsiteAddPanel({ onDone, onAdded }: { onDone: () => void; onAdded: (t:
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
         </button>
       </div>
-      <OffsiteTaskForm submitLabel="สร้างงาน" onSubmit={handleSubmit} onCancel={onDone} />
+      <OffsiteTaskForm departments={departments} submitLabel="สร้างงาน" onSubmit={handleSubmit} onCancel={onDone} />
     </div>
   );
 }
 
 function DetailEmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center px-6">
+    <div className="flex flex-col items-center justify-center py-24 text-center px-6 animate-enter">
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface">
         <svg className="h-6 w-6 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" /></svg>
       </div>
@@ -235,15 +236,18 @@ export default function OfsitePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<OffsiteTask[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<WorkStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<WorkType | "all">("all");
+  const [deptFilter, setDeptFilter] = useState<string>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [panelMode, setPanelMode] = useState<"detail" | "edit" | "add">("detail");
 
   useEffect(() => {
-    fetchTasks().then((data) => {
+    Promise.all([fetchTasks(), fetchAllDepartments()]).then(([data, depts]) => {
       setTasks(data);
+      setDepartments(depts);
       setLoading(false);
     });
   }, []);
@@ -253,15 +257,16 @@ export default function OfsitePage() {
     return tasks.filter((t) => {
       if (statusFilter !== "all" && t.status !== statusFilter) return false;
       if (typeFilter !== "all" && t.type !== typeFilter) return false;
+      if (deptFilter !== "all" && t.department !== deptFilter) return false;
       if (q) {
-        const hay = [t.title, t.location, t.id, t.department, t.note ?? "", t.type].join(" ").toLowerCase();
+        const hay = [t.title, t.location, t.id, t.note ?? "", t.type].join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [tasks, search, statusFilter, typeFilter]);
+  }, [tasks, search, statusFilter, typeFilter, deptFilter]);
 
-  const hasFilter = search || statusFilter !== "all" || typeFilter !== "all";
+  const hasFilter = search || statusFilter !== "all" || typeFilter !== "all" || deptFilter !== "all";
 
   if (loading) {
     return (
@@ -270,9 +275,10 @@ export default function OfsitePage() {
         <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md" aria-hidden="true">
           <div className="space-y-2.5 px-4 pt-3 pb-3">
             <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
-            <div className="flex gap-2">
-              <div className="h-9 flex-1 animate-pulse rounded-[6px] bg-border" />
-              <div className="h-9 flex-1 animate-pulse rounded-[6px] bg-border" />
+            <div className="grid grid-cols-3 gap-2">
+              <div className="h-9 animate-pulse rounded-[6px] bg-border" />
+              <div className="h-9 animate-pulse rounded-[6px] bg-border" />
+              <div className="h-9 animate-pulse rounded-[6px] bg-border" />
             </div>
           </div>
         </div>
@@ -333,7 +339,7 @@ export default function OfsitePage() {
           <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md lg:static lg:z-auto lg:shrink-0">
             <div className="space-y-2.5 px-4 pt-3 pb-3">
               <div className="relative">
-                <input type="search" placeholder="ค้นหาชื่องาน สถานที่ ทีม ประเภท..." value={search} onChange={(e) => setSearch(e.target.value)} className="field-input pr-9" />
+                <input type="search" placeholder="ค้นหาชื่องาน สถานที่ ประเภท..." value={search} onChange={(e) => setSearch(e.target.value)} className="field-input pr-9" />
                 {search ? (
                   <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-border text-muted hover:bg-border-strong hover:text-ink" aria-label="ล้างคำค้นหา">
                     <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
@@ -342,12 +348,16 @@ export default function OfsitePage() {
                   <svg className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
                 )}
               </div>
-              <div className="flex gap-2">
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as WorkStatus | "all")} aria-label="กรองตามสถานะ" className="field-input flex-1">
+              <div className="grid grid-cols-3 gap-2">
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as WorkStatus | "all")} aria-label="กรองตามสถานะ" className="field-input">
                   {STATUS_FILTER_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                 </select>
-                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as WorkType | "all")} aria-label="กรองตามประเภท" className="field-input flex-1">
+                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as WorkType | "all")} aria-label="กรองตามประเภท" className="field-input">
                   {TYPE_FILTER_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+                <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} aria-label="กรองตามทีม" className="field-input">
+                  <option value="all">ทุกทีม</option>
+                  {departments.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
             </div>
@@ -359,7 +369,7 @@ export default function OfsitePage() {
                 {filtered.length > 0 ? `${filtered.length} งาน` : "ไม่พบงานที่ตรงกัน"}
               </p>
               {hasFilter && (
-                <button onClick={() => { setSearch(""); setStatusFilter("all"); setTypeFilter("all"); }} className="text-[12px] text-primary-text hover:underline">
+                <button onClick={() => { setSearch(""); setStatusFilter("all"); setTypeFilter("all"); setDeptFilter("all"); }} className="text-[12px] text-primary-text hover:underline">
                   ล้างตัวกรอง
                 </button>
               )}
@@ -386,12 +396,12 @@ export default function OfsitePage() {
         <div className="hidden lg:flex lg:w-1/2 lg:min-h-0 lg:flex-col lg:overflow-y-auto">
           {(() => {
             if (panelMode === "add") return (
-              <OffsiteAddPanel onDone={() => setPanelMode("detail")} onAdded={(t) => setTasks((prev) => [t, ...prev])} />
+              <OffsiteAddPanel departments={departments} onDone={() => setPanelMode("detail")} onAdded={(t) => setTasks((prev) => [t, ...prev])} />
             );
             const task = selectedId ? tasks.find((t) => t.id === selectedId) : null;
             if (!task) return <DetailEmptyState />;
             if (panelMode === "edit") return (
-              <OffsiteEditPanel task={task} onDone={() => setPanelMode("detail")} onSaved={(updated) => setTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t))} />
+              <OffsiteEditPanel task={task} departments={departments} onDone={() => setPanelMode("detail")} onSaved={(updated) => setTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t))} />
             );
             return (
               <OffsiteDetailPanel

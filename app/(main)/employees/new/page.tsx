@@ -4,12 +4,20 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/navbar";
 import EmployeeForm, { type EmployeeFormData } from "@/components/employee-form";
 import { createEmployee } from "@/lib/employees";
+import { createNotification } from "@/lib/notifications";
 
 export default function NewEmployeePage() {
   const router = useRouter();
 
   async function handleSubmit(data: EmployeeFormData) {
     const id = await createEmployee(data);
+    await createNotification({
+      type: "info",
+      category: "ข้อมูลพนักงาน",
+      title: "เพิ่มพนักงานใหม่",
+      message: `${data.firstName} ${data.lastName} เข้าร่วมทีม${data.department} ในตำแหน่ง${data.position}`,
+      href: `/employees/${id}`,
+    });
     router.replace(`/employees/${id}`);
   }
 

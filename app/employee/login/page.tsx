@@ -61,7 +61,7 @@ export default function EmployeeLoginPage() {
           </span>
         </div>
         <div className="flex-1 flex flex-col justify-center px-12">
-          <p className="text-white/60 text-[13px] font-medium uppercase tracking-[0.1em] mb-3">
+          <p className="text-white/60 text-[13px] font-medium mb-3">
             พอร์ทัลพนักงาน
           </p>
           <p
@@ -99,7 +99,7 @@ export default function EmployeeLoginPage() {
           <div className="lg:hidden mb-12">
             <span className="text-primary-text text-[32px] font-bold tracking-[-0.03em] leading-none">UGI</span>
           </div>
-          <p className="text-[12px] font-medium text-muted uppercase tracking-[0.08em] mb-2">พอร์ทัลพนักงาน</p>
+          <p className="text-[12px] font-medium text-muted mb-2">พอร์ทัลพนักงาน</p>
           <h1 className="text-[26px] font-semibold text-ink tracking-[-0.01em] leading-[1.2] mb-9" style={{ textWrap: "balance" } as React.CSSProperties}>เข้าสู่ระบบ</h1>
           <form onSubmit={handleEmailLogin} className="flex flex-col gap-6">
             <div className="flex flex-col gap-[7px]">

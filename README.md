@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UGI — ระบบบริหารงานพนักงาน
 
-## Getting Started
+ระบบ HR และ compliance สำหรับองค์กรไทย จัดการข้อมูลพนักงาน การอบรม งานนอกสถานที่ และรายงาน
 
-First, run the development server:
+## Tech Stack
+
+- **Next.js 16** (App Router) + **React 19** + **TypeScript**
+- **Tailwind CSS v4**
+- **Firebase** — Authentication + Firestore + Storage
+- **Cloudinary** — อัปโหลดรูปภาพ
+- **Chart.js** — กราฟรายงาน
+
+## โมดูล
+
+| โมดูล | Path |
+|-------|------|
+| ข้อมูลพนักงาน | `/employees` |
+| บริษัท | `/company` |
+| ประวัติการอบรม | `/training` |
+| การปฏิบัติงานนอกสถานที่ | `/offsite` |
+| รายงาน | `/reports` |
+
+## ผู้ใช้งาน
+
+- **เจ้าหน้าที่ (officer)** — login ที่ `/login` ต้องใส่รหัส Office ตอนสมัคร เข้าถึงทุกโมดูล
+- **พนักงาน (employee)** — login ที่ `/employee/login` ดูข้อมูลของตัวเองที่ `/me`
+
+## การติดตั้ง
+
+```bash
+npm install
+```
+
+สร้างไฟล์ `.env.local` และใส่ค่าตามนี้:
+
+```env
+# Office ID (fixed — ระบบนี้ใช้สำหรับ office เดียว)
+NEXT_PUBLIC_OFFICE_ID=
+
+# Firebase Client SDK (Firebase Console > Project Settings > Your apps)
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+
+# Cloudinary (cloudinary.com > Settings > API Keys)
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+# Firebase Admin SDK (Firebase Console > Project Settings > Service accounts > Generate new private key)
+FIREBASE_ADMIN_PROJECT_ID=
+FIREBASE_ADMIN_CLIENT_EMAIL=
+FIREBASE_ADMIN_PRIVATE_KEY=
+```
+
+รัน dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+เปิด [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## โครงสร้าง Firestore
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+office/{OFFICE_ID}/
+  employees/{id}
+    history/{id}
+  companies/{id}
+  training/{id}
+  offsite/{id}
 
-## Learn More
+users/{uid}
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev      # development server
+npm run build    # production build
+npm run start    # production server
+npm run lint     # ESLint
+```

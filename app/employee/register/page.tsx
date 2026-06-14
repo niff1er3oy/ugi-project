@@ -166,7 +166,7 @@ export default function EmployeeRegisterPage() {
           <span className="text-white text-[34px] font-bold tracking-[-0.03em] leading-none">UGI</span>
         </div>
         <div className="flex-1 flex flex-col justify-center px-12">
-          <p className="text-white/60 text-[13px] font-medium uppercase tracking-[0.1em] mb-3">
+          <p className="text-white/60 text-[13px] font-medium mb-3">
             พอร์ทัลพนักงาน
           </p>
           <p

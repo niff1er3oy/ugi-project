@@ -25,10 +25,12 @@ function FormSection({ label, children }: { label: string; children: React.React
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1.5 block text-[12px] font-medium text-ink">
-        {label}{required && <span className="ml-0.5 text-error">*</span>}
+      <label className="block text-[12px] font-medium text-ink">
+        <span className="mb-1.5 block">
+          {label}{required && <span className="ml-0.5 text-error">*</span>}
+        </span>
+        {children}
       </label>
-      {children}
     </div>
   );
 }

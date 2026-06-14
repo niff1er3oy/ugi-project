@@ -27,13 +27,20 @@ const MONTH_ABBR: Record<string, number> = {
   "ก.ค.": 7, "ส.ค.": 8, "ก.ย.": 9, "ต.ค.": 10, "พ.ย.": 11, "ธ.ค.": 12,
 };
 
-function parseThaiDate(s: string): { month: number; year: number } | null {
+function parseThaiDate(s: string): { day: number; month: number; year: number } | null {
   const parts = s.trim().split(/\s+/);
   if (parts.length < 3) return null;
+  const day   = parseInt(parts[0]);
   const month = MONTH_ABBR[parts[1]];
-  const year = parseInt(parts[2]);
-  if (!month || isNaN(year)) return null;
-  return { month, year };
+  const year  = parseInt(parts[2]);
+  if (!month || isNaN(year) || isNaN(day)) return null;
+  return { day, month, year };
+}
+
+function taskSortKey(t: OffsiteTask): number {
+  const d = parseThaiDate(t.startDate);
+  if (!d) return 0;
+  return new Date(d.year - 543, d.month - 1, d.day).getTime();
 }
 
 function taskMatchesPeriod(task: OffsiteTask, month: number, yearBE: number): boolean {
@@ -53,13 +60,20 @@ function DonutChart({ segments, total }: { segments: { label: WorkType; count: n
     chartRef.current?.destroy();
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     chartRef.current = new Chart(ctx, {
       type: "doughnut",
       data: {
         labels: segments.map((s) => s.label),
         datasets: [{
           data: segments.map((s) => s.count),
-          backgroundColor: segments.map((s) => s.color),
+          backgroundColor: segments.map((s) => {
+            if (s.color.startsWith("var(")) {
+              return getComputedStyle(document.documentElement)
+                .getPropertyValue(s.color.slice(4, -1)).trim() || s.color;
+            }
+            return s.color;
+          }),
           borderWidth: 0,
           hoverOffset: 6,
           spacing: 3,
@@ -71,7 +85,7 @@ function DonutChart({ segments, total }: { segments: { label: WorkType; count: n
         responsive: true,
         maintainAspectRatio: true,
         aspectRatio: 1,
-        animation: { animateRotate: true, animateScale: false, duration: 500 },
+        animation: prefersReducedMotion ? false : { animateRotate: true, animateScale: false, duration: 500 },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -92,7 +106,7 @@ function DonutChart({ segments, total }: { segments: { label: WorkType; count: n
         <canvas ref={canvasRef} role="img" aria-label="สัดส่วนประเภทงาน" />
         <div className="pointer-events-none absolute inset-0 flex select-none flex-col items-center justify-center">
           <span className="text-[28px] font-bold leading-none tracking-[-0.03em] text-ink">{total}</span>
-          <span className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.07em] text-muted">งานทั้งหมด</span>
+          <span className="mt-1.5 text-[10px] font-semibold text-muted">งานทั้งหมด</span>
         </div>
       </div>
       <div className="flex w-full flex-col gap-3.5 sm:flex-1">
@@ -178,6 +192,32 @@ function TaskCard({ task, index }: { task: OffsiteTask; index: number }) {
   );
 }
 
+// ── CSV export ─────────────────────────────────────────────────
+function exportCSV(tasks: OffsiteTask[], monthIdx: number, year: number) {
+  const headers = ["รหัส", "ชื่องาน", "ประเภท", "สถานะ", "แผนก", "สถานที่", "วันที่", "เวลา", "หมายเหตุ"];
+  const rows = tasks.map((t) => [
+    t.id,
+    t.title,
+    t.type,
+    STATUS_CONFIG[t.status].label,
+    t.department,
+    t.location,
+    t.startDate,
+    t.startTime ?? "",
+    t.note ?? "",
+  ]);
+  const csv = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\r\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = `รายงาน_${MONTHS_TH[monthIdx]}_${year}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ── Page ───────────────────────────────────────────────────────
 export default function ReportsPage() {
   const now = new Date();
@@ -242,7 +282,7 @@ export default function ReportsPage() {
     color: TYPE_CONFIG[type].color,
   }));
 
-  const recentTasks = displayTasks.slice(0, 5);
+  const recentTasks = [...periodTasks].sort((a, b) => taskSortKey(b) - taskSortKey(a));
 
   const CE_YEAR = year - 543;
 
@@ -334,11 +374,12 @@ export default function ReportsPage() {
       <main className="mx-auto w-full max-w-5xl px-4 py-6 space-y-5">
 
         {/* Period selector */}
-        <div className="flex items-center gap-3 animate-enter">
+        <div className="flex items-end gap-3 animate-enter">
           <div className="flex-1">
-            <label className="mb-1 block text-[11px] font-medium text-muted">เดือน</label>
+            <label htmlFor="report-month" className="mb-1 block text-[11px] font-medium text-muted">เดือน</label>
             <div className="relative">
               <select
+                id="report-month"
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
                 className="field-input cursor-pointer appearance-none pr-8"
@@ -353,9 +394,10 @@ export default function ReportsPage() {
             </div>
           </div>
           <div className="w-32">
-            <label className="mb-1 block text-[11px] font-medium text-muted">ปี (พ.ศ.)</label>
+            <label htmlFor="report-year" className="mb-1 block text-[11px] font-medium text-muted">ปี (พ.ศ.)</label>
             <div className="relative">
               <select
+                id="report-year"
                 value={year}
                 onChange={(e) => {
                   const y = Number(e.target.value);
@@ -374,6 +416,19 @@ export default function ReportsPage() {
               </svg>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => exportCSV(displayTasks, month, year)}
+            disabled={displayTasks.length === 0}
+            aria-label="ดาวน์โหลด CSV"
+            title="ดาวน์โหลด CSV"
+            className="flex h-9 items-center gap-2 rounded-[6px] border border-border bg-background px-3 text-[13px] font-medium text-ink transition-colors duration-150 hover:bg-surface hover:border-border-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            <span className="hidden sm:inline">ดาวน์โหลด</span>
+          </button>
         </div>
 
         {/* Period label */}
@@ -428,7 +483,7 @@ export default function ReportsPage() {
 
         {/* Recent work */}
         <div className="animate-enter" style={{ animationDelay: "140ms" }}>
-          <p className="mb-3 text-[13px] font-semibold text-ink">การปฏิบัติงานล่าสุด</p>
+          <p className="mb-3 text-[13px] font-semibold text-ink">การปฏิบัติงาน{usePeriod ? `${MONTHS_TH[month]} ${year}` : "ทั้งหมด"}</p>
           {recentTasks.length === 0 ? (
             <div className="rounded-[12px] border border-border bg-background px-4 py-10 text-center">
               <p className="text-[13px] text-muted">ยังไม่มีงานในช่วงเวลานี้</p>

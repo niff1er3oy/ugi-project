@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { modules } from "@/lib/modules";
 import { useNotificationCount } from "@/components/notification-provider";
@@ -12,11 +11,6 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { unreadCount } = useNotificationCount();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    return onAuthStateChanged(auth, setUser);
-  }, []);
 
   async function handleLogout() {
     await signOut(auth);
@@ -103,33 +97,16 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* User footer */}
-      <div className="border-t border-border px-3 py-3">
+      {/* Logout */}
+      <div className="border-t border-border px-2 py-3">
         <button
           onClick={handleLogout}
-          className="group flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2 text-left transition-colors duration-150 hover:bg-background"
+          className="flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2 text-[13px] font-medium text-error transition-colors duration-150 hover:bg-error-pale focus:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-inset"
         >
-          {user?.photoURL ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={user.photoURL}
-              alt={user.displayName ?? "avatar"}
-              referrerPolicy="no-referrer"
-              className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-primary/20"
-            />
-          ) : (
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-ghost text-primary-text">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-              </svg>
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] font-medium text-ink">
-              {user?.displayName ?? user?.email ?? "ผู้ใช้งาน"}
-            </p>
-            <p className="truncate text-[11px] text-muted">ออกจากระบบ</p>
-          </div>
+          <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+          </svg>
+          ออกจากระบบ
         </button>
       </div>
     </aside>

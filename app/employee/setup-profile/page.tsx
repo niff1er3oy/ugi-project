@@ -184,7 +184,7 @@ export default function EmployeeSetupProfilePage() {
             )}
           </div>
           <div>
-            <p className="text-[11px] font-medium text-muted uppercase tracking-[0.08em] mb-0.5">พอร์ทัลพนักงาน</p>
+            <p className="text-[11px] font-medium text-muted mb-0.5">พอร์ทัลพนักงาน</p>
             <p className="text-[15px] font-semibold text-ink leading-snug">กรอกข้อมูลส่วนตัว</p>
             <p className="text-[13px] text-muted">{user.email}</p>
           </div>

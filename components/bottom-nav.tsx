@@ -107,7 +107,7 @@ export default function BottomNav() {
                     </span>
                   )}
                 </span>
-                <span className="text-[10px] font-medium leading-none">
+                <span className="text-[11px] font-medium leading-none">
                   {item.label}
                 </span>
               </Link>

@@ -1,16 +1,16 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase/client";
+import { subscribeNotifications, type AppNotification } from "@/lib/notifications";
 
 type NotifCtx = {
   unreadCount: number;
-  setUnreadCount: (n: number) => void;
+  notifications: AppNotification[];
 };
 
-const NotifContext = createContext<NotifCtx>({
-  unreadCount: 0,
-  setUnreadCount: () => {},
-});
+const NotifContext = createContext<NotifCtx>({ unreadCount: 0, notifications: [] });
 
 export function NotificationProvider({
   children,
@@ -19,14 +19,34 @@ export function NotificationProvider({
   children: ReactNode;
   initialCount: number;
 }) {
-  const [unreadCount, setUnreadCount] = useState(initialCount);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [uid, setUid] = useState<string | null>(null);
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, (user) => setUid(user?.uid ?? null));
+  }, []);
+
+  useEffect(() => {
+    if (!uid) return;
+    return subscribeNotifications(setNotifications);
+  }, [uid]);
+
+  const unreadCount = uid
+    ? notifications.filter((n) => !n.readBy.includes(uid)).length
+    : initialCount;
+
   return (
-    <NotifContext.Provider value={{ unreadCount, setUnreadCount }}>
+    <NotifContext.Provider value={{ unreadCount, notifications }}>
       {children}
     </NotifContext.Provider>
   );
 }
 
-export function useNotificationCount() {
+export function useNotifications() {
   return useContext(NotifContext);
+}
+
+export function useNotificationCount() {
+  const { unreadCount } = useContext(NotifContext);
+  return { unreadCount, setUnreadCount: () => {} };
 }

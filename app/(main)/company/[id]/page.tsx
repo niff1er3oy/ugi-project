@@ -185,6 +185,7 @@ export default function CompanyDetailPage() {
 
           {/* ── ข้อมูลบริษัท ──────────────────────────────────── */}
           <Section label="ข้อมูลบริษัท">
+            <InfoRow labelWidth="w-36" label="รหัสบริษัท" value={<span className="font-mono text-[12px]">{company.id}</span>} />
             <InfoRow labelWidth="w-36" label="เลขทะเบียนนิติบุคคล" value={<span className="font-mono text-[12px]">{company.taxId}</span>} />
             <InfoRow labelWidth="w-36" label="ประเภทนิติบุคคล" value={`บริษัท${company.type}`} />
             <InfoRow labelWidth="w-36" label="ปีที่ก่อตั้ง" value={`พ.ศ. ${company.founded}`} />

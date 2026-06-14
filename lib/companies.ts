@@ -72,3 +72,12 @@ export async function updateCompany(id: string, data: Partial<Omit<Company, "id"
 export async function deleteCompany(id: string): Promise<void> {
   await deleteDoc(companyRef(id));
 }
+
+export async function fetchAllDepartments(): Promise<string[]> {
+  const companies = await fetchCompanies();
+  const set = new Set<string>();
+  for (const c of companies) {
+    for (const d of c.departments ?? []) set.add(d);
+  }
+  return [...set].sort();
+}

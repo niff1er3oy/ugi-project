@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { uploadFile } from "@/lib/upload";
-import { DEPARTMENTS } from "@/lib/employees";
 import {
   TYPE_CONFIG, STATUS_CONFIG,
   type WorkType, type WorkStatus, type OffsiteTask,
@@ -10,7 +9,6 @@ import {
 
 export type OffsiteTaskFormData = Omit<OffsiteTask, "id">;
 
-const ALL_DEPARTMENTS = DEPARTMENTS;
 const WORK_TYPES: WorkType[] = ["ซ่อมบำรุง", "ติดตั้ง", "ตรวจสอบ", "อื่นๆ"];
 const WORK_STATUSES: WorkStatus[] = ["pending", "in_progress", "completed", "cancelled"];
 const NEEDS_END = (s: WorkStatus) => s === "completed" || s === "cancelled";
@@ -51,7 +49,7 @@ function IconPicker({
             </div>
           )}
           {uploading ? (
-            <div className="absolute inset-0 flex items-center justify-center rounded-[18px] bg-black/40">
+            <div className="absolute inset-0 flex items-center justify-center rounded-[18px] bg-ink/60">
               <svg className="h-5 w-5 animate-spin text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -73,7 +71,7 @@ function IconPicker({
             type="button"
             onClick={onClear}
             aria-label="ลบรูปปก"
-            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-error text-white shadow-sm ring-2 ring-background"
+            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-error text-white shadow-sm ring-2 ring-background after:absolute after:content-[''] after:-inset-3"
           >
             <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -105,11 +103,11 @@ function WorkPhotoPicker({
       <div className="grid grid-cols-3 gap-2">
         {photos.map((url, i) => (
           <div key={i} className="relative aspect-square overflow-hidden rounded-[8px] bg-surface">
-            <img src={url} alt="" className="h-full w-full object-cover" />
+            <img src={url} alt="" loading="lazy" className="h-full w-full object-cover" />
             <button
               type="button"
               onClick={() => onRemove(i)}
-              className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white shadow-sm"
+              className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-ink/70 text-white shadow-sm"
               aria-label="ลบรูป"
             >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
@@ -158,10 +156,12 @@ function FormSection({ label, children }: { label: string; children: React.React
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1.5 block text-[12px] font-medium text-ink">
-        {label}{required && <span className="ml-0.5 text-error">*</span>}
+      <label className="block text-[12px] font-medium text-ink">
+        <span className="mb-1.5 block">
+          {label}{required && <span className="ml-0.5 text-error">*</span>}
+        </span>
+        {children}
       </label>
-      {children}
     </div>
   );
 }
@@ -170,12 +170,14 @@ function Field({ label, required, children }: { label: string; required?: boolea
 export default function OffsiteTaskForm({
   defaultValues,
   taskId,
+  departments = [],
   onSubmit,
   onCancel,
   submitLabel = "บันทึก",
 }: {
   defaultValues?: Partial<OffsiteTask>;
   taskId?: string;
+  departments?: string[];
   onSubmit: (data: OffsiteTaskFormData) => void;
   onCancel: () => void;
   submitLabel?: string;
@@ -189,7 +191,7 @@ export default function OffsiteTaskForm({
     startTime:  defaultValues?.startTime  ?? "",
     endDate:    defaultValues?.endDate,
     endTime:    defaultValues?.endTime,
-    department: defaultValues?.department ?? ALL_DEPARTMENTS[0],
+    department: defaultValues?.department ?? departments[0] ?? "",
     location:   defaultValues?.location   ?? "",
     note:       defaultValues?.note       ?? "",
     workPhotos: defaultValues?.workPhotos ?? [],
@@ -282,10 +284,14 @@ export default function OffsiteTaskForm({
             </select>
           </Field>
           <Field label="ทีม">
-            <select className="field-input" value={form.department}
-              onChange={(e) => set("department", e.target.value)}>
-              {ALL_DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
+            {departments.length === 0 ? (
+              <div className="field-input text-muted">ยังไม่มีทีมในระบบ — เพิ่มทีมในหน้าบริษัทก่อน</div>
+            ) : (
+              <select className="field-input" value={form.department}
+                onChange={(e) => set("department", e.target.value)}>
+                {departments.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            )}
           </Field>
         </div>
         {form.type === "อื่นๆ" && (

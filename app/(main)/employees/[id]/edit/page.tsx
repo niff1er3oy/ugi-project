@@ -4,7 +4,8 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import EmployeeForm, { type EmployeeFormData } from "@/components/employee-form";
-import { fetchEmployee, updateEmployee, DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { fetchEmployee, updateEmployee, STATUS_CONFIG, DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { createNotification } from "@/lib/notifications";
 
 export default function EditEmployeePage() {
   const router = useRouter();
@@ -21,6 +22,15 @@ export default function EditEmployeePage() {
 
   async function handleSubmit(data: EmployeeFormData) {
     await updateEmployee(params.id, data);
+    if (emp && data.status !== emp.status) {
+      await createNotification({
+        type: "info",
+        category: "ข้อมูลพนักงาน",
+        title: "สถานะพนักงานเปลี่ยนแปลง",
+        message: `${emp.firstName} ${emp.lastName} เปลี่ยนสถานะเป็น "${STATUS_CONFIG[data.status].label}"`,
+        href: `/employees/${params.id}`,
+      });
+    }
     router.back();
   }
 

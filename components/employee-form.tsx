@@ -49,7 +49,7 @@ function AvatarPicker({
           )}
 
           {uploading ? (
-            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-ink/60">
               <svg className="h-5 w-5 animate-spin text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -70,7 +70,7 @@ function AvatarPicker({
             type="button"
             onClick={onClear}
             aria-label="ลบรูปโปรไฟล์"
-            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-error text-white shadow-sm ring-2 ring-background"
+            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-error text-white shadow-sm ring-2 ring-background after:absolute after:content-[''] after:-inset-3"
           >
             <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -109,11 +109,13 @@ function FormSection({ label, children }: { label: string; children: React.React
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1.5 block text-[12px] font-medium text-ink">
-        {label}
-        {required && <span className="ml-0.5 text-error">*</span>}
+      <label className="block text-[12px] font-medium text-ink">
+        <span className="mb-1.5 block">
+          {label}
+          {required && <span className="ml-0.5 text-error">*</span>}
+        </span>
+        {children}
       </label>
-      {children}
     </div>
   );
 }

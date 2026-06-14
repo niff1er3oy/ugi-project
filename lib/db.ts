@@ -17,3 +17,8 @@ export const trainingDocRef  = (id: string) => doc(db, "office", OFFICE_ID, "tra
 
 export const offsiteRef      = () => collection(db, "office", OFFICE_ID, "offsite");
 export const offsiteDocRef   = (id: string) => doc(db, "office", OFFICE_ID, "offsite", id);
+
+export const notificationsRef    = () => collection(db, "office", OFFICE_ID, "notifications");
+export const notificationDocRef  = (id: string) => doc(db, "office", OFFICE_ID, "notifications", id);
+
+export const userRef = (uid: string) => doc(db, "users", uid);

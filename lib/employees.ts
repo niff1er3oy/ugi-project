@@ -26,17 +26,17 @@ export type Employee = {
 
 // ── Config ─────────────────────────────────────────────────────
 export const DEPT_CONFIG: Record<string, { color: string; bg: string }> = {
-  "ฝ่ายผลิต":        { color: "oklch(0.42 0.15 75)",  bg: "oklch(0.95 0.04 75)"  },
-  "ฝ่ายวิศวกรรม":    { color: "oklch(0.44 0.27 292)", bg: "oklch(0.94 0.05 292)" },
-  "ฝ่าย HR":         { color: "oklch(0.36 0.14 195)", bg: "oklch(0.93 0.04 195)" },
-  "ฝ่ายบัญชี":       { color: "oklch(0.35 0.14 145)", bg: "oklch(0.93 0.06 145)" },
-  "ฝ่ายความปลอดภัย": { color: "oklch(0.40 0.18 25)",  bg: "oklch(0.95 0.04 25)"  },
+  "ฝ่ายผลิต":        { color: "var(--accent-text)",   bg: "var(--accent-pale)"   },
+  "ฝ่ายวิศวกรรม":    { color: "var(--primary-text)",  bg: "var(--primary-ghost)" },
+  "ฝ่าย HR":         { color: "var(--inspect-color)",  bg: "var(--inspect-bg)"    },
+  "ฝ่ายบัญชี":       { color: "var(--success-text)",  bg: "var(--success-pale)"  },
+  "ฝ่ายความปลอดภัย": { color: "var(--error)",         bg: "var(--error-pale)"    },
 };
 
 export const STATUS_CONFIG: Record<EmpStatus, { label: string; dot: string; bg: string; text: string }> = {
-  active:   { label: "ปฏิบัติงาน", dot: "oklch(0.52 0.16 145)", bg: "bg-success-pale",  text: "text-success-text"  },
-  leave:    { label: "ลาพัก",      dot: "oklch(0.72 0.14 75)",  bg: "bg-accent-pale",   text: "text-accent-text"   },
-  resigned: { label: "ลาออก",      dot: "oklch(0.60 0.04 292)", bg: "bg-surface",       text: "text-muted"         },
+  active:   { label: "ปฏิบัติงาน", dot: "var(--success)", bg: "bg-success-pale",  text: "text-success-text"  },
+  leave:    { label: "ลาพัก",      dot: "var(--accent)",  bg: "bg-accent-pale",   text: "text-accent-text"   },
+  resigned: { label: "ลาออก",      dot: "var(--muted)",   bg: "bg-surface",       text: "text-muted"         },
 };
 
 export const DEPARTMENTS = Object.keys(DEPT_CONFIG);

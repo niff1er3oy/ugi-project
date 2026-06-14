@@ -25,7 +25,7 @@ function CompanyAvatar({ company, size = 44 }: { company: Company; size?: number
       style={{ width: size, height: size, backgroundColor: company.bg, color: company.color, fontSize: size * 0.28 }}
     >
       {company.logoURL ? (
-        <img src={company.logoURL} alt={company.shortName} className="h-full w-full object-contain p-[12%]" />
+        <img src={company.logoURL} alt={company.shortName} loading="lazy" className="h-full w-full object-contain p-[12%]" />
       ) : initials}
     </div>
   );
@@ -136,6 +136,7 @@ function CompanyDetailPanel({ company, employees, onClose, onEdit, onDeleted }: 
 
       <div className="space-y-5">
         <Section label="ข้อมูลบริษัท">
+          <InfoRow labelWidth="w-36" label="รหัสบริษัท" value={<span className="font-mono text-[12px]">{company.id}</span>} />
           <InfoRow labelWidth="w-36" label="เลขทะเบียนนิติบุคคล" value={<span className="font-mono text-[12px]">{company.taxId}</span>} />
           <InfoRow labelWidth="w-36" label="ประเภทนิติบุคคล" value={`บริษัท${company.type}`} />
           <InfoRow labelWidth="w-36" label="ปีที่ก่อตั้ง" value={`พ.ศ. ${company.founded}`} />
