@@ -96,22 +96,17 @@ export default function LoginPage() {
       </aside>
 
       {/* ── Right: Form panel ─────────────────────────────── */}
-      <main className="flex flex-1 flex-col bg-background">
-        <div className="lg:hidden bg-primary select-none px-8 pt-14 pb-10">
-          <span className="text-white text-[34px] font-bold tracking-[-0.03em] leading-none">UGI</span>
-          <p className="mt-3 text-white/90 text-[20px] font-semibold leading-[1.35]" style={{ textWrap: "balance" } as React.CSSProperties}>
-            ระบบบริหาร<br />งานพนักงาน
-          </p>
-          <p className="mt-2.5 text-white/50 text-[13px] leading-[1.65]">
-            จัดการข้อมูลพนักงาน เอกสารรับรอง<br />การอบรม และความปลอดภัยในที่เดียว
-          </p>
-          <div className="mt-8 flex flex-col gap-[5px]">
+      <main className="flex flex-1 flex-col bg-primary lg:bg-background">
+        <div className="lg:hidden select-none px-8 pt-12 pb-16">
+          <span className="text-white text-[40px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+          <p className="mt-2 text-white/85 text-[16px] font-medium">ระบบบริหารงานพนักงาน</p>
+          <div className="mt-8 flex flex-col gap-[4px]">
             {CALIBRATION_WIDTHS.map((w, i) => (
               <div key={i} className="h-px animate-calibration" style={{ width: `${w}%`, backgroundColor: `oklch(1 0 0 / ${Math.max(0.04, 0.11 - i * 0.01)})`, "--i": i } as React.CSSProperties} />
             ))}
           </div>
         </div>
-        <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 lg:py-12">
+        <div className="flex flex-1 flex-col items-center -mt-6 rounded-t-[28px] bg-background px-6 pt-8 pb-10 lg:mt-0 lg:justify-center lg:rounded-none lg:py-12">
         <div className="w-full max-w-[400px] animate-enter">
           <h1 className="text-[26px] font-semibold text-ink tracking-[-0.01em] leading-[1.2] mb-9" style={{ textWrap: "balance" } as React.CSSProperties}>เข้าสู่ระบบ</h1>
           <form onSubmit={handleEmailLogin} className="flex flex-col gap-6">
