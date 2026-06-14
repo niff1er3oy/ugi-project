@@ -65,7 +65,7 @@ export default function LoginPage() {
         {/* Product identity */}
         <div className="flex-1 flex flex-col justify-center px-12">
           <p
-            className="text-white/90 text-[22px] font-semibold leading-[1.35] mb-4"
+            className="text-white/90 text-[26px] font-semibold leading-[1.3] mb-4"
             style={{ textWrap: "balance" } as React.CSSProperties}
           >
             ระบบบริหาร
@@ -96,11 +96,23 @@ export default function LoginPage() {
       </aside>
 
       {/* ── Right: Form panel ─────────────────────────────── */}
-      <main className="flex flex-1 flex-col items-center justify-center px-6 py-12 bg-background">
-        <div className="w-full max-w-[400px] animate-enter">
-          <div className="lg:hidden mb-12">
-            <span className="text-primary-text text-[32px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+      <main className="flex flex-1 flex-col bg-background">
+        <div className="lg:hidden bg-primary select-none px-8 pt-14 pb-10">
+          <span className="text-white text-[34px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+          <p className="mt-3 text-white/90 text-[20px] font-semibold leading-[1.35]" style={{ textWrap: "balance" } as React.CSSProperties}>
+            ระบบบริหาร<br />งานพนักงาน
+          </p>
+          <p className="mt-2.5 text-white/50 text-[13px] leading-[1.65]">
+            จัดการข้อมูลพนักงาน เอกสารรับรอง<br />การอบรม และความปลอดภัยในที่เดียว
+          </p>
+          <div className="mt-8 flex flex-col gap-[5px]">
+            {CALIBRATION_WIDTHS.map((w, i) => (
+              <div key={i} className="h-px animate-calibration" style={{ width: `${w}%`, backgroundColor: `oklch(1 0 0 / ${Math.max(0.04, 0.11 - i * 0.01)})`, "--i": i } as React.CSSProperties} />
+            ))}
           </div>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 lg:py-12">
+        <div className="w-full max-w-[400px] animate-enter">
           <h1 className="text-[26px] font-semibold text-ink tracking-[-0.01em] leading-[1.2] mb-9" style={{ textWrap: "balance" } as React.CSSProperties}>เข้าสู่ระบบ</h1>
           <form onSubmit={handleEmailLogin} className="flex flex-col gap-6">
             <div className="flex flex-col gap-[7px]">
@@ -126,10 +138,16 @@ export default function LoginPage() {
             ยังไม่มีบัญชี?{" "}
             <Link href="/register" className="font-medium text-primary-text hover:underline">สมัครใหม่</Link>
           </p>
-          <p className="mt-3 text-center text-[13px] text-muted">
-            เป็นพนักงาน?{" "}
-            <Link href="/employee/login" className="font-medium text-primary-text hover:underline">เข้าสู่ระบบพนักงาน</Link>
+          <p className="mt-8 text-center text-[11px] text-muted/60">
+            จัดทำโดย{" "}
+            <a href="https://github.com/Niff1er3oy" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 transition-colors duration-150 hover:text-muted">
+              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z" />
+              </svg>
+              Niff1er
+            </a>
           </p>
+        </div>
         </div>
       </main>
     </div>
