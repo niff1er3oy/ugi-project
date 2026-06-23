@@ -58,7 +58,7 @@ export default function LoginPage() {
         {/* Wordmark */}
         <div className="px-12 pt-14">
           <span className="text-white text-[34px] font-bold tracking-[-0.03em] leading-none">
-            UGI
+            {process.env.NEXT_PUBLIC_APP_NAME}
           </span>
         </div>
 
@@ -98,7 +98,7 @@ export default function LoginPage() {
       {/* ── Right: Form panel ─────────────────────────────── */}
       <main className="flex flex-1 flex-col bg-primary lg:bg-background">
         <div className="lg:hidden select-none px-8 pt-12 pb-16">
-          <span className="text-white text-[40px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+          <span className="text-white text-[40px] font-bold tracking-[-0.03em] leading-none">{process.env.NEXT_PUBLIC_APP_NAME}</span>
           <p className="mt-2 text-white/85 text-[16px] font-medium">ระบบบริหารงานพนักงาน</p>
           <div className="mt-8 flex flex-col gap-[4px]">
             {CALIBRATION_WIDTHS.map((w, i) => (

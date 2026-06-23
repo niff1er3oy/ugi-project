@@ -12,10 +12,7 @@ import { companyRef } from "@/lib/db";
 type VerifiedCompany = {
   id: string;
   name: string;
-  shortName: string;
   type: string;
-  color: string;
-  bg: string;
   logoURL?: string;
   departments: string[];
 };
@@ -32,7 +29,6 @@ export default function EmployeeRegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
-  const [startDate, setStartDate] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -47,7 +43,6 @@ export default function EmployeeRegisterPage() {
   const [verifiedCompany, setVerifiedCompany] = useState<VerifiedCompany | null>(null);
   const [verifyError, setVerifyError] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const [position, setPosition] = useState("");
   const [department, setDepartment] = useState("");
   const [step2Error, setStep2Error] = useState("");
   const [step2Loading, setStep2Loading] = useState(false);
@@ -103,10 +98,7 @@ export default function EmployeeRegisterPage() {
       setVerifiedCompany({
         id: snap.id,
         name: data.name,
-        shortName: data.shortName,
         type: data.type,
-        color: data.color,
-        bg: data.bg,
         logoURL: data.logoURL,
         departments: data.departments ?? [],
       });
@@ -121,7 +113,7 @@ export default function EmployeeRegisterPage() {
     e.preventDefault();
     if (!createdUser || !verifiedCompany) return;
     setStep2Error("");
-    if (!department.trim()) { setStep2Error("กรุณาระบุแผนก / ทีม"); return; }
+    if (!department.trim()) { setStep2Error("กรุณาระบุทีม"); return; }
     setStep2Loading(true);
     try {
       await setDoc(doc(db, "users", createdUser.uid), {
@@ -129,13 +121,10 @@ export default function EmployeeRegisterPage() {
         employeeId: createdUser.uid,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        position: position.trim(),
         department: department.trim(),
         phone: phone.trim(),
-        startDate,
         company: verifiedCompany.name,
         companyId: verifiedCompany.id,
-        status: "active",
         email: createdUser.email,
         photoURL: createdUser.photoURL ?? null,
         createdAt: serverTimestamp(),
@@ -163,7 +152,7 @@ export default function EmployeeRegisterPage() {
       {/* ── Brand panel ─────────────────────────────────────── */}
       <aside className="hidden lg:flex lg:w-[420px] xl:w-[480px] flex-col flex-shrink-0 bg-primary select-none">
         <div className="px-12 pt-14">
-          <span className="text-white text-[34px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+          <span className="text-white text-[34px] font-bold tracking-[-0.03em] leading-none">{process.env.NEXT_PUBLIC_APP_NAME}</span>
         </div>
         <div className="flex-1 flex flex-col justify-center px-12">
           <p className="text-white/60 text-[13px] font-medium mb-3">
@@ -203,7 +192,7 @@ export default function EmployeeRegisterPage() {
         <div className="w-full max-w-[420px] animate-enter">
           {/* Mobile wordmark */}
           <div className="lg:hidden mb-10">
-            <span className="text-primary-text text-[32px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+            <span className="text-primary-text text-[32px] font-bold tracking-[-0.03em] leading-none">{process.env.NEXT_PUBLIC_APP_NAME}</span>
           </div>
 
           {/* Step indicator */}
@@ -271,16 +260,10 @@ export default function EmployeeRegisterPage() {
                 </div>
               </div>
 
-              {/* Phone + Start date */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-[7px]">
-                  <label htmlFor="phone" className="text-[13.5px] font-medium text-ink leading-none">เบอร์โทร</label>
-                  <input id="phone" type="tel" autoComplete="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} disabled={step1Loading} className="field-input" style={{ padding: "10px 14px", fontSize: "15px" }} placeholder="0812345678" />
-                </div>
-                <div className="flex flex-col gap-[7px]">
-                  <label htmlFor="startDate" className="text-[13.5px] font-medium text-ink leading-none">วันที่เริ่มงาน</label>
-                  <input id="startDate" type="date" required value={startDate} onChange={(e) => setStartDate(e.target.value)} disabled={step1Loading} className="field-input" style={{ padding: "10px 14px", fontSize: "15px" }} />
-                </div>
+              {/* Phone */}
+              <div className="flex flex-col gap-[7px]">
+                <label htmlFor="phone" className="text-[13.5px] font-medium text-ink leading-none">เบอร์โทร</label>
+                <input id="phone" type="tel" autoComplete="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} disabled={step1Loading} className="field-input" style={{ padding: "10px 14px", fontSize: "15px" }} placeholder="0812345678" />
               </div>
 
               {/* Email */}
@@ -390,15 +373,14 @@ export default function EmployeeRegisterPage() {
               ) : (
                 /* Verified company card */
                 <div className="flex items-center gap-3 rounded-[10px] border border-success/40 bg-success-pale px-4 py-3">
-                  <div
-                    className="h-10 w-10 rounded-[7px] flex items-center justify-center shrink-0 overflow-hidden"
-                    style={{ background: verifiedCompany.color }}
-                  >
+                  <div className="h-10 w-10 rounded-[7px] flex items-center justify-center shrink-0 overflow-hidden bg-primary">
                     {verifiedCompany.logoURL ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={verifiedCompany.logoURL} alt="" className="h-full w-full object-contain p-1" />
                     ) : (
-                      <span className="text-white text-[11px] font-bold leading-none text-center">{verifiedCompany.shortName}</span>
+                      <span className="text-white text-[11px] font-bold leading-none text-center">
+                        {verifiedCompany.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("")}
+                      </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -419,22 +401,7 @@ export default function EmployeeRegisterPage() {
               {verifiedCompany && (
                 <>
                   <div className="flex flex-col gap-[7px]">
-                    <label htmlFor="position" className="text-[13.5px] font-medium text-ink leading-none">ตำแหน่งหน้าที่</label>
-                    <input
-                      id="position"
-                      type="text"
-                      required
-                      value={position}
-                      onChange={(e) => setPosition(e.target.value)}
-                      disabled={step2Loading}
-                      className="field-input"
-                      style={{ padding: "10px 14px", fontSize: "15px" }}
-                      placeholder="เช่น พนักงานฝ่ายผลิต"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-[7px]">
-                    <label htmlFor="department" className="text-[13.5px] font-medium text-ink leading-none">แผนก / ทีม</label>
+                    <label htmlFor="department" className="text-[13.5px] font-medium text-ink leading-none">ทีม</label>
                     {hasDepts && (
                       <div className="flex flex-wrap gap-2">
                         {verifiedCompany.departments.map((d) => (
@@ -463,7 +430,7 @@ export default function EmployeeRegisterPage() {
                       disabled={step2Loading}
                       className="field-input"
                       style={{ padding: "10px 14px", fontSize: "15px" }}
-                      placeholder={hasDepts ? "หรือพิมพ์ชื่อแผนก / ทีม" : "พิมพ์ชื่อแผนก / ทีม"}
+                      placeholder={hasDepts ? "หรือพิมพ์ชื่อทีม" : "พิมพ์ชื่อทีม"}
                     />
                   </div>
 

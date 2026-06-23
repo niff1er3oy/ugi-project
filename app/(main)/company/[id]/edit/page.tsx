@@ -74,23 +74,6 @@ export default function EditCompanyPage() {
     <>
       <Navbar title="แก้ไขข้อมูลบริษัท" />
       <main className="mx-auto w-full max-w-2xl px-4 py-6 pb-28 animate-enter">
-        {/* Identity chip */}
-        <div className="mb-6 flex items-center gap-3 rounded-[10px] bg-surface px-3 py-2.5">
-          <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[8px] text-[11px] font-bold"
-            style={company.logoURL ? { backgroundColor: company.bg } : { backgroundColor: company.color, color: "white" }}
-          >
-            {company.logoURL ? (
-              <img src={company.logoURL} alt="" className="h-full w-full object-contain p-0.5" />
-            ) : (
-              company.shortName.replace(/[^A-Z]/g, "").slice(0, 2) || company.shortName.slice(0, 2).toUpperCase()
-            )}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-[13px] font-semibold text-ink">{company.shortName}</p>
-            <p className="text-[11px] text-muted">{company.id}</p>
-          </div>
-        </div>
         <CompanyForm
           defaultValues={company}
           companyId={params.id}

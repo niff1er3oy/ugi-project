@@ -15,17 +15,15 @@ import TeamManager from "@/components/team-manager";
 
 // ── Sub-components ─────────────────────────────────────────────
 function CompanyAvatar({ company, size = 44 }: { company: Company; size?: number }) {
-  const initials =
-    company.shortName.replace(/[^A-Z]/g, "").slice(0, 2) ||
-    company.shortName.slice(0, 2).toUpperCase();
+  const initials = company.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "บ";
   const radius = size >= 56 ? "rounded-[16px]" : "rounded-[12px]";
   return (
     <div
-      className={`flex shrink-0 items-center justify-center overflow-hidden font-bold ${radius}`}
-      style={{ width: size, height: size, backgroundColor: company.bg, color: company.color, fontSize: size * 0.28 }}
+      className={`flex shrink-0 items-center justify-center overflow-hidden bg-primary font-bold text-white ${radius}`}
+      style={{ width: size, height: size, fontSize: size * 0.28 }}
     >
       {company.logoURL ? (
-        <img src={company.logoURL} alt={company.shortName} loading="lazy" className="h-full w-full object-contain p-[12%]" />
+        <img src={company.logoURL} alt={company.name} loading="lazy" className="h-full w-full object-contain p-[12%]" />
       ) : initials}
     </div>
   );
@@ -45,11 +43,10 @@ function CompanyCard({ company, employees, index, onSelect }: { company: Company
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[14px] font-semibold leading-snug text-ink">{company.shortName}</p>
-              <p className="mt-0.5 truncate text-[11px] leading-snug text-muted">{company.name}</p>
+              <p className="text-[14px] font-semibold leading-snug text-ink">{company.name}</p>
             </div>
-            <span className="mt-0.5 shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: company.bg, color: company.color }}>
-              {company.type === "จำกัด (มหาชน)" ? "มหาชน" : company.type}
+            <span className="mt-0.5 shrink-0 rounded-full bg-primary-ghost px-2.5 py-0.5 text-[10px] font-semibold text-primary-text">
+              {company.type}
             </span>
           </div>
         </div>
@@ -59,10 +56,6 @@ function CompanyCard({ company, employees, index, onSelect }: { company: Company
         <span className="flex items-center gap-1.5">
           <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
           {stats.total} คน
-        </span>
-        <span className="flex items-center gap-1.5">
-          <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-          ก่อตั้ง พ.ศ. {company.founded}
         </span>
         {stats.departments.length > 0 && (
           <span className="flex items-center gap-1.5">
@@ -87,8 +80,8 @@ function CompanyDetailPanel({ company, employees, onClose, onEdit, onDeleted }: 
   return (
     <div className="px-6 py-6 animate-enter">
       <div className="mb-5 flex items-center justify-between">
-        <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold" style={{ backgroundColor: company.bg, color: company.color }}>
-          บริษัท{company.type === "จำกัด (มหาชน)" ? "มหาชน" : company.type}
+        <span className="inline-flex items-center rounded-full bg-primary-ghost px-3 py-1 text-[11px] font-semibold text-primary-text">
+          {company.type}
         </span>
         <button onClick={onClose} aria-label="ปิด" className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
@@ -98,8 +91,7 @@ function CompanyDetailPanel({ company, employees, onClose, onEdit, onDeleted }: 
       <div className="mb-6 flex gap-4">
         <CompanyAvatar company={company} size={52} />
         <div className="min-w-0">
-          <h2 className="text-[17px] font-semibold leading-snug text-ink">{company.shortName}</h2>
-          <p className="mt-0.5 text-[12px] text-muted">{company.name}</p>
+          <h2 className="text-[17px] font-semibold leading-snug text-ink">{company.name}</h2>
         </div>
       </div>
 
@@ -137,9 +129,8 @@ function CompanyDetailPanel({ company, employees, onClose, onEdit, onDeleted }: 
       <div className="space-y-5">
         <Section label="ข้อมูลบริษัท">
           <InfoRow labelWidth="w-36" label="รหัสบริษัท" value={<span className="font-mono text-[12px]">{company.id}</span>} />
-          <InfoRow labelWidth="w-36" label="เลขทะเบียนนิติบุคคล" value={<span className="font-mono text-[12px]">{company.taxId}</span>} />
-          <InfoRow labelWidth="w-36" label="ประเภทนิติบุคคล" value={`บริษัท${company.type}`} />
-          <InfoRow labelWidth="w-36" label="ปีที่ก่อตั้ง" value={`พ.ศ. ${company.founded}`} />
+          <InfoRow labelWidth="w-36" label={company.type === "นิติบุคคล" ? "เลขนิติบุคคล" : "เลขบัตรประชาชน"} value={<span className="font-mono text-[12px]">{company.taxId}</span>} />
+          <InfoRow labelWidth="w-36" label="ประเภท" value={company.type} />
         </Section>
         <Section label="ช่องทางติดต่อ">
           <InfoRow labelWidth="w-36" label="ที่อยู่" value={<span className="text-left leading-relaxed">{company.address}</span>} />
@@ -260,7 +251,7 @@ export default function CompanyPage() {
     return companies.filter((c) => {
       if (typeFilter !== "all" && c.type !== typeFilter) return false;
       if (q) {
-        const hay = [c.shortName, c.name, c.type, c.taxId, c.address].join(" ").toLowerCase();
+        const hay = [c.name, c.type, c.taxId, c.address].join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;

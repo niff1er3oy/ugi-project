@@ -3,17 +3,14 @@ import { trainingRef, trainingDocRef } from "@/lib/db";
 
 // ── Types ──────────────────────────────────────────────────────
 export type TrainingCategory = "ความปลอดภัย" | "ทักษะวิชาชีพ" | "ทักษะทั่วไป" | "การจัดการ" | "อื่นๆ";
-export type TrainingStatus   = "completed" | "in_progress" | "cancelled";
 
 export type TrainingRecord = {
   id: string;
   title: string;
   category: TrainingCategory;
-  status: TrainingStatus;
   date: string;
   endDate?: string;
   hours: number;
-  instructor: string;
   location: string;
   company: string;
   department?: string;
@@ -22,12 +19,6 @@ export type TrainingRecord = {
 };
 
 // ── Config ──────────────────────────────────────────────────────
-export const STATUS_CONFIG: Record<TrainingStatus, { label: string; bg: string; text: string; dot: string }> = {
-  completed:   { label: "เสร็จสิ้น",       bg: "bg-success-pale",  text: "text-success-text", dot: "oklch(0.52 0.16 145)" },
-  in_progress: { label: "กำลังดำเนินการ",  bg: "bg-primary-ghost", text: "text-primary-text", dot: "oklch(0.44 0.27 292)" },
-  cancelled:   { label: "ยกเลิก",          bg: "bg-error-pale",    text: "text-error",        dot: "oklch(0.50 0.17 25)"  },
-};
-
 export const CATEGORY_CONFIG: Record<TrainingCategory, { color: string; bg: string; iconPath: string }> = {
   "ความปลอดภัย": {
     color: "oklch(0.50 0.17 25)",
@@ -57,13 +48,6 @@ export const CATEGORY_CONFIG: Record<TrainingCategory, { color: string; bg: stri
 };
 
 export const CATEGORIES: TrainingCategory[] = ["ความปลอดภัย", "ทักษะวิชาชีพ", "ทักษะทั่วไป", "การจัดการ", "อื่นๆ"];
-
-export const STATUS_FILTER_OPTIONS: { value: TrainingStatus | "all"; label: string }[] = [
-  { value: "all",         label: "ทุกสถานะ"      },
-  { value: "completed",   label: "เสร็จสิ้น"      },
-  { value: "in_progress", label: "กำลังดำเนินการ" },
-  { value: "cancelled",   label: "ยกเลิก"         },
-];
 
 // ── Firestore CRUD ─────────────────────────────────────────────
 export async function fetchTrainings(): Promise<TrainingRecord[]> {

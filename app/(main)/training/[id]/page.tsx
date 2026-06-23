@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import { Section, InfoRow } from "@/components/detail-section";
 import ParticipantManager from "@/components/participant-manager";
-import { fetchTraining, deleteTraining, STATUS_CONFIG, CATEGORY_CONFIG, type TrainingRecord, type TrainingCategory } from "@/lib/training";
+import { fetchTraining, deleteTraining, CATEGORY_CONFIG, type TrainingRecord, type TrainingCategory } from "@/lib/training";
 
 function CategoryIcon({ category, size = 40 }: { category: TrainingCategory; size?: number }) {
   const cfg = CATEGORY_CONFIG[category];
@@ -99,8 +99,6 @@ export default function TrainingDetailPage() {
     );
   }
 
-  const status = STATUS_CONFIG[record.status];
-
   return (
     <>
       <Navbar title="รายละเอียดการอบรม" right={editButton} />
@@ -115,10 +113,6 @@ export default function TrainingDetailPage() {
           </h2>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${status.bg} ${status.text}`}>
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: status.dot }} />
-              {status.label}
-            </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] font-medium text-ink">
               {record.hours} ชม. · {record.participants.length} คน
             </span>
@@ -129,14 +123,13 @@ export default function TrainingDetailPage() {
           <Section label="ข้อมูลหลักสูตร">
             <InfoRow label="วันที่"         value={record.endDate ? `${record.date} – ${record.endDate}` : record.date} />
             <InfoRow label="จำนวนชั่วโมง"  value={`${record.hours} ชั่วโมง`} />
-            <InfoRow label="วิทยากร"        value={record.instructor} />
             <InfoRow label="รหัสการอบรม"   value={<span className="font-mono text-[12px]">{record.id}</span>} />
           </Section>
 
           <Section label="สถานที่และหน่วยงาน">
             <InfoRow label="สถานที่" value={record.location} />
             <InfoRow label="บริษัท"  value={record.company} />
-            {record.department && <InfoRow label="แผนก" value={record.department} />}
+            {record.department && <InfoRow label="ทีม" value={record.department} />}
           </Section>
 
           <ParticipantManager trainingId={record.id} participants={record.participants} />

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { fetchTrainings, STATUS_CONFIG, CATEGORY_CONFIG, type TrainingRecord } from "@/lib/training";
+import { fetchTrainings, CATEGORY_CONFIG, type TrainingRecord } from "@/lib/training";
 
 export default function EmployeeTrainingSection({ employeeId }: { employeeId: string }) {
   const router = useRouter();
@@ -31,7 +31,6 @@ export default function EmployeeTrainingSection({ employeeId }: { employeeId: st
       </p>
       <div className="overflow-hidden rounded-[12px] border border-border bg-background divide-y divide-border">
         {records.map((record) => {
-          const status = STATUS_CONFIG[record.status];
           const cat = CATEGORY_CONFIG[record.category];
           return (
             <button
@@ -55,9 +54,6 @@ export default function EmployeeTrainingSection({ employeeId }: { employeeId: st
                   <span className="text-[11px] text-muted">{record.hours} ชม.</span>
                 </div>
               </div>
-              <span className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${status.bg} ${status.text}`}>
-                {status.label}
-              </span>
               <svg className="h-4 w-4 shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
               </svg>

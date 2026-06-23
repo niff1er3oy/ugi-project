@@ -6,16 +6,12 @@ import { DEPT_CONFIG, type Employee } from "@/lib/employees";
 export type Company = {
   id: string;
   name: string;
-  shortName: string;
-  type: "จำกัด" | "มหาชน" | "จำกัด (มหาชน)";
+  type: "นิติบุคคล" | "บุคคลธรรมดา";
   taxId: string;
   address: string;
   phone: string;
   email: string;
   website: string;
-  founded: string;
-  color: string;
-  bg: string;
   departments: string[];
   logoURL?: string;
 };

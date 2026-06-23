@@ -7,8 +7,8 @@ import { Section, InfoRow } from "@/components/detail-section";
 import ParticipantManager from "@/components/participant-manager";
 import {
   fetchTrainings, createTraining, updateTraining, deleteTraining,
-  STATUS_CONFIG, CATEGORY_CONFIG, CATEGORIES, STATUS_FILTER_OPTIONS,
-  type TrainingCategory, type TrainingStatus, type TrainingRecord,
+  CATEGORY_CONFIG, CATEGORIES,
+  type TrainingCategory, type TrainingRecord,
 } from "@/lib/training";
 import TrainingForm, { type TrainingFormData } from "@/components/training-form";
 
@@ -27,7 +27,6 @@ function CategoryIcon({ category, size = 40 }: { category: TrainingCategory; siz
 
 // ── Training card ───────────────────────────────────────────────
 function TrainingCard({ record, index, onSelect }: { record: TrainingRecord; index: number; onSelect: (id: string) => void }) {
-  const status = STATUS_CONFIG[record.status];
   const cat = CATEGORY_CONFIG[record.category];
 
   return (
@@ -39,11 +38,8 @@ function TrainingCard({ record, index, onSelect }: { record: TrainingRecord; ind
       <div className="flex items-start gap-3 px-4 pt-4">
         <CategoryIcon category={record.category} />
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2">
             <p className="text-[14px] font-semibold text-ink leading-snug">{record.title}</p>
-            <span className={`mt-0.5 shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${status.bg} ${status.text}`}>
-              {status.label}
-            </span>
           </div>
           <div className="mt-1 flex items-center gap-2">
             <span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: cat.color }}>
@@ -80,7 +76,6 @@ function TrainingCard({ record, index, onSelect }: { record: TrainingRecord; ind
 
 // ── Detail panel ────────────────────────────────────────────────
 function TrainingDetailPanel({ record, onClose, onEdit, onDeleted }: { record: TrainingRecord; onClose: () => void; onEdit: () => void; onDeleted: (id: string) => void }) {
-  const status = STATUS_CONFIG[record.status];
   const cat = CATEGORY_CONFIG[record.category];
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -91,11 +86,7 @@ function TrainingDetailPanel({ record, onClose, onEdit, onDeleted }: { record: T
 
   return (
     <div className="px-6 py-6 animate-enter">
-      <div className="mb-5 flex items-center justify-between">
-        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${status.bg} ${status.text}`}>
-          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: status.dot }} />
-          {status.label}
-        </span>
+      <div className="mb-5 flex items-center justify-end">
         <button onClick={onClose} aria-label="ปิด" className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
         </button>
@@ -128,14 +119,13 @@ function TrainingDetailPanel({ record, onClose, onEdit, onDeleted }: { record: T
         <Section label="ข้อมูลหลักสูตร">
           <InfoRow label="วันที่"         value={record.endDate ? `${record.date} – ${record.endDate}` : record.date} />
           <InfoRow label="จำนวนชั่วโมง"  value={`${record.hours} ชั่วโมง`} />
-          <InfoRow label="วิทยากร"        value={record.instructor} />
           <InfoRow label="รหัสการอบรม"   value={<span className="font-mono text-[12px]">{record.id}</span>} />
         </Section>
 
         <Section label="สถานที่และหน่วยงาน">
           <InfoRow label="สถานที่" value={record.location} />
           <InfoRow label="บริษัท"  value={record.company} />
-          {record.department && <InfoRow label="แผนก" value={record.department} />}
+          {record.department && <InfoRow label="ทีม" value={record.department} />}
         </Section>
 
         <ParticipantManager key={record.id} trainingId={record.id} participants={record.participants} />
@@ -232,7 +222,6 @@ function TrainingPageContent() {
   const [loading, setLoading] = useState(true);
   const [records, setRecords] = useState<TrainingRecord[]>([]);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<TrainingStatus | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<TrainingCategory | "all">("all");
   const [selectedId, setSelectedId] = useState<string | null>(() => searchParams.get("select") ?? null);
   const [panelMode, setPanelMode] = useState<"detail" | "edit" | "add">("detail");
@@ -247,17 +236,16 @@ function TrainingPageContent() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return records.filter((r) => {
-      if (statusFilter !== "all" && r.status !== statusFilter) return false;
       if (categoryFilter !== "all" && r.category !== categoryFilter) return false;
       if (q) {
-        const hay = [r.title, r.instructor, r.location, r.company, r.department ?? "", r.id, r.note ?? ""].join(" ").toLowerCase();
+        const hay = [r.title, r.location, r.company, r.department ?? "", r.id, r.note ?? ""].join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [records, search, statusFilter, categoryFilter]);
+  }, [records, search, categoryFilter]);
 
-  const hasFilter = search || statusFilter !== "all" || categoryFilter !== "all";
+  const hasFilter = search || categoryFilter !== "all";
 
   if (loading) {
     return (
@@ -280,9 +268,8 @@ function TrainingPageContent() {
                 <div className="flex items-start gap-3 px-4 pt-4">
                   <div className="mt-0.5 h-10 w-10 shrink-0 animate-pulse rounded-[10px] bg-border" />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2">
                       <div className="h-[42px] flex-1 animate-pulse rounded-[3px] bg-border" />
-                      <div className="mt-0.5 h-5 w-20 shrink-0 animate-pulse rounded-full bg-border" />
                     </div>
                     <div className="mt-2 flex gap-2">
                       <div className="h-3.5 w-20 animate-pulse rounded-[3px] bg-border" />
@@ -329,7 +316,7 @@ function TrainingPageContent() {
           <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md lg:static lg:z-auto lg:shrink-0">
             <div className="space-y-2.5 px-4 pt-3 pb-3">
               <div className="relative">
-                <input type="search" placeholder="ค้นหาชื่อหลักสูตร วิทยากร สถานที่..." value={search} onChange={(e) => setSearch(e.target.value)} className="field-input pr-9" />
+                <input type="search" placeholder="ค้นหาชื่อหลักสูตร สถานที่ บริษัท..." value={search} onChange={(e) => setSearch(e.target.value)} className="field-input pr-9" />
                 {search ? (
                   <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-border text-muted hover:bg-border-strong hover:text-ink" aria-label="ล้างคำค้นหา">
                     <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
@@ -338,15 +325,10 @@ function TrainingPageContent() {
                   <svg className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
                 )}
               </div>
-              <div className="flex gap-2">
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as TrainingStatus | "all")} aria-label="กรองตามสถานะ" className="field-input flex-1">
-                  {STATUS_FILTER_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                </select>
-                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value as TrainingCategory | "all")} aria-label="กรองตามประเภท" className="field-input flex-1">
-                  <option value="all">ทุกประเภท</option>
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
+              <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value as TrainingCategory | "all")} aria-label="กรองตามประเภท" className="field-input">
+                <option value="all">ทุกประเภท</option>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
             </div>
           </div>
 
@@ -356,7 +338,7 @@ function TrainingPageContent() {
                 {filtered.length > 0 ? `${filtered.length} รายการ` : "ไม่พบการอบรมที่ตรงกัน"}
               </p>
               {hasFilter && (
-                <button onClick={() => { setSearch(""); setStatusFilter("all"); setCategoryFilter("all"); }} className="text-[12px] text-primary-text hover:underline">
+                <button onClick={() => { setSearch(""); setCategoryFilter("all"); }} className="text-[12px] text-primary-text hover:underline">
                   ล้างตัวกรอง
                 </button>
               )}

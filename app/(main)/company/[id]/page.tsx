@@ -10,14 +10,14 @@ import { fetchCompany, getCompanyStats, type Company } from "@/lib/companies";
 import { fetchEmployees, type Employee } from "@/lib/employees";
 
 function CompanyLogo({ company, size = 72 }: { company: Company; size?: number }) {
-  const initials = company.shortName.replace(/[^A-Z]/g, "").slice(0, 2) || company.shortName.slice(0, 2).toUpperCase();
+  const initials = company.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "บ";
   return (
     <div
-      className="flex items-center justify-center overflow-hidden rounded-[18px] font-bold shadow-sm ring-4 ring-background"
-      style={{ width: size, height: size, backgroundColor: company.bg, color: company.color, fontSize: size * 0.28 }}
+      className="flex items-center justify-center overflow-hidden rounded-[18px] bg-primary font-bold text-white shadow-sm ring-4 ring-background"
+      style={{ width: size, height: size, fontSize: size * 0.28 }}
     >
       {company.logoURL ? (
-        <img src={company.logoURL} alt={company.shortName} className="h-full w-full object-contain p-[12%]" />
+        <img src={company.logoURL} alt={company.name} className="h-full w-full object-contain p-[12%]" />
       ) : initials}
     </div>
   );
@@ -122,15 +122,11 @@ export default function CompanyDetailPage() {
           <CompanyLogo company={company} size={76} />
 
           <h2 className="mt-4 text-[19px] font-semibold tracking-[-0.01em] text-ink leading-snug">
-            {company.shortName}
+            {company.name}
           </h2>
-          <p className="mt-1 text-[12px] text-muted">{company.name}</p>
 
-          <span
-            className="mt-3 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold"
-            style={{ backgroundColor: company.bg, color: company.color }}
-          >
-            บริษัท{company.type === "จำกัด (มหาชน)" ? "มหาชน" : company.type}
+          <span className="mt-3 inline-flex items-center rounded-full bg-primary-ghost px-3 py-1 text-[11px] font-semibold text-primary-text">
+            {company.type}
           </span>
 
           {/* Stats row */}
@@ -186,9 +182,10 @@ export default function CompanyDetailPage() {
           {/* ── ข้อมูลบริษัท ──────────────────────────────────── */}
           <Section label="ข้อมูลบริษัท">
             <InfoRow labelWidth="w-36" label="รหัสบริษัท" value={<span className="font-mono text-[12px]">{company.id}</span>} />
-            <InfoRow labelWidth="w-36" label="เลขทะเบียนนิติบุคคล" value={<span className="font-mono text-[12px]">{company.taxId}</span>} />
-            <InfoRow labelWidth="w-36" label="ประเภทนิติบุคคล" value={`บริษัท${company.type}`} />
-            <InfoRow labelWidth="w-36" label="ปีที่ก่อตั้ง" value={`พ.ศ. ${company.founded}`} />
+            <InfoRow labelWidth="w-36" label="ประเภท" value={company.type} />
+            {company.taxId && (
+              <InfoRow labelWidth="w-36" label={company.type === "นิติบุคคล" ? "เลขนิติบุคคล" : "เลขบัตรประชาชน"} value={<span className="font-mono text-[12px]">{company.taxId}</span>} />
+            )}
           </Section>
 
           {/* ── ช่องทางติดต่อ ──────────────────────────────────── */}

@@ -4,13 +4,11 @@ import { useState, useEffect } from "react";
 import { fetchEmployees, DEPT_CONFIG, type Employee } from "@/lib/employees";
 import { fetchCompanies, type Company } from "@/lib/companies";
 import {
-  CATEGORIES, STATUS_CONFIG,
-  type TrainingCategory, type TrainingStatus, type TrainingRecord,
+  CATEGORIES,
+  type TrainingCategory, type TrainingRecord,
 } from "@/lib/training";
 
 export type TrainingFormData = Omit<TrainingRecord, "id">;
-
-const TRAINING_STATUSES: TrainingStatus[] = ["in_progress", "completed", "cancelled"];
 
 // ── Field helpers ───────────────────────────────────────────────
 function FormSection({ label, children }: { label: string; children: React.ReactNode }) {
@@ -176,11 +174,9 @@ export default function TrainingForm({
   const [form, setForm] = useState<TrainingFormData>({
     title:        defaultValues?.title        ?? "",
     category:     defaultValues?.category     ?? "ความปลอดภัย",
-    status:       defaultValues?.status       ?? "in_progress",
     date:         defaultValues?.date         ?? "",
     endDate:      defaultValues?.endDate,
     hours:        defaultValues?.hours        ?? 0,
-    instructor:   defaultValues?.instructor   ?? "",
     location:     defaultValues?.location     ?? "",
     company:      defaultValues?.company      ?? "",
     department:   defaultValues?.department,
@@ -243,32 +239,6 @@ export default function TrainingForm({
         </div>
       </FormSection>
 
-      {/* สถานะ */}
-      <FormSection label="สถานะ">
-        <div className="grid grid-cols-3 gap-2">
-          {TRAINING_STATUSES.map((s) => {
-            const cfg = STATUS_CONFIG[s];
-            const active = form.status === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => set("status", s)}
-                aria-pressed={active}
-                className={`flex items-center justify-center gap-1.5 rounded-[8px] border py-2.5 text-[12px] font-medium transition-colors ${
-                  active
-                    ? "border-primary bg-primary/5 text-primary-text"
-                    : "border-border text-muted hover:border-border-strong hover:text-ink"
-                }`}
-              >
-                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: cfg.dot }} />
-                {cfg.label}
-              </button>
-            );
-          })}
-        </div>
-      </FormSection>
-
       {/* วันที่ */}
       <FormSection label="วันที่">
         <div className="grid grid-cols-2 gap-3">
@@ -292,16 +262,8 @@ export default function TrainingForm({
         </div>
       </FormSection>
 
-      {/* วิทยากรและสถานที่ */}
-      <FormSection label="วิทยากรและสถานที่">
-        <Field label="วิทยากร / ผู้จัดอบรม">
-          <input
-            className="field-input"
-            value={form.instructor}
-            onChange={(e) => set("instructor", e.target.value)}
-            placeholder="เช่น อ.สมชาย หรือ บริษัท XYZ Training"
-          />
-        </Field>
+      {/* สถานที่ */}
+      <FormSection label="สถานที่">
         <Field label="สถานที่">
           <input
             className="field-input"
@@ -327,13 +289,13 @@ export default function TrainingForm({
           </select>
         </Field>
         {depts.length > 0 && (
-          <Field label="แผนก / ทีม">
+          <Field label="ทีม">
             <select
               className="field-input"
               value={form.department ?? ""}
               onChange={(e) => set("department", e.target.value || undefined)}
             >
-              <option value="">— ทุกแผนก —</option>
+              <option value="">— ทุกทีม —</option>
               {depts.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
           </Field>
