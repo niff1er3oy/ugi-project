@@ -319,7 +319,7 @@ export default function CompanyPage() {
                 )}
               </div>
               <div className="flex gap-1.5" role="group" aria-label="กรองตามประเภทบริษัท">
-                {(["all", "จำกัด", "มหาชน", "จำกัด (มหาชน)"] as const).map((t) => (
+                {(["all", "นิติบุคคล", "บุคคลธรรมดา"] as const).map((t) => (
                   <button key={t} onClick={() => setTypeFilter(t)} aria-pressed={typeFilter === t} className={`rounded-[6px] px-3 py-1.5 text-[12px] font-medium transition-colors ${typeFilter === t ? "bg-primary text-white" : "border border-border bg-background text-muted hover:border-border-strong hover:text-ink"}`}>
                     {t === "all" ? "ทั้งหมด" : t}
                   </button>
