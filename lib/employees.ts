@@ -1,26 +1,15 @@
 import { getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
-import { employeesRef, employeeRef, historyRef } from "@/lib/db";
+import { employeesRef, employeeRef } from "@/lib/db";
 
 // ── Types ──────────────────────────────────────────────────────
-export type EmpStatus = "active" | "leave" | "resigned";
-
-export type HistoryEntry = {
-  date: string;
-  status: EmpStatus;
-  note?: string;
-};
-
 export type Employee = {
   id: string;
   firstName: string;
   lastName: string;
-  status: EmpStatus;
   department: string;
   company: string;
-  position: string;
   phone: string;
   email: string;
-  startDate: string;
   photoURL?: string;
 };
 
@@ -31,12 +20,6 @@ export const DEPT_CONFIG: Record<string, { color: string; bg: string }> = {
   "ฝ่าย HR":         { color: "var(--inspect-color)",  bg: "var(--inspect-bg)"    },
   "ฝ่ายบัญชี":       { color: "var(--success-text)",  bg: "var(--success-pale)"  },
   "ฝ่ายความปลอดภัย": { color: "var(--error)",         bg: "var(--error-pale)"    },
-};
-
-export const STATUS_CONFIG: Record<EmpStatus, { label: string; dot: string; bg: string; text: string }> = {
-  active:   { label: "ปฏิบัติงาน", dot: "var(--success)", bg: "bg-success-pale",  text: "text-success-text"  },
-  leave:    { label: "ลาพัก",      dot: "var(--accent)",  bg: "bg-accent-pale",   text: "text-accent-text"   },
-  resigned: { label: "ลาออก",      dot: "var(--muted)",   bg: "bg-surface",       text: "text-muted"         },
 };
 
 export const DEPARTMENTS = Object.keys(DEPT_CONFIG);
@@ -64,14 +47,4 @@ export async function updateEmployee(id: string, data: Partial<Omit<Employee, "i
 
 export async function deleteEmployee(id: string): Promise<void> {
   await deleteDoc(employeeRef(id));
-}
-
-// ── History subcollection ──────────────────────────────────────
-export async function fetchEmployeeHistory(empId: string): Promise<HistoryEntry[]> {
-  const snap = await getDocs(historyRef(empId));
-  return snap.docs.map((d) => d.data() as HistoryEntry);
-}
-
-export async function addEmployeeHistory(empId: string, entry: HistoryEntry): Promise<void> {
-  await addDoc(historyRef(empId), entry);
 }

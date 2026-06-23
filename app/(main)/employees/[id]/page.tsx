@@ -4,14 +4,12 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import { Section, InfoRow } from "@/components/detail-section";
-import { fetchEmployee, deleteEmployee, DEPT_CONFIG, STATUS_CONFIG, type Employee } from "@/lib/employees";
-import EmployeeHistorySection from "@/components/employee-history";
+import { fetchEmployee, deleteEmployee, DEPT_CONFIG, type Employee } from "@/lib/employees";
 import EmployeeTrainingSection from "@/components/employee-training-section";
 
 // ── Sub-components ─────────────────────────────────────────────
 function Avatar({ emp, size = 80 }: { emp: Employee; size?: number }) {
   const dept = DEPT_CONFIG[emp.department];
-  const status = STATUS_CONFIG[emp.status];
   const initials = emp.firstName.charAt(0) + emp.lastName.charAt(0);
 
   return (
@@ -34,14 +32,6 @@ function Avatar({ emp, size = 80 }: { emp: Employee; size?: number }) {
           {initials}
         </div>
       )}
-      <span
-        className="absolute rounded-full border-2 border-background"
-        style={{
-          width: size * 0.18, height: size * 0.18,
-          bottom: size * 0.03, right: size * 0.03,
-          backgroundColor: status.dot,
-        }}
-      />
     </div>
   );
 }
@@ -86,10 +76,8 @@ export default function EmployeeDetailPage() {
           <div className="mb-6 mt-4 flex flex-col items-center text-center" aria-hidden="true">
             <div className="h-[88px] w-[88px] animate-pulse rounded-full bg-border" />
             <div className="mt-4 h-5 w-32 animate-pulse rounded-[3px] bg-border" />
-            <div className="mt-0.5 h-3.5 w-24 animate-pulse rounded-[3px] bg-border" />
             <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
               <div className="h-6 w-24 animate-pulse rounded-full bg-border" />
-              <div className="h-6 w-20 animate-pulse rounded-full bg-border" />
             </div>
             <div className="mt-5 flex gap-3">
               <div className="h-9 w-16 animate-pulse rounded-[8px] bg-border" />
@@ -97,7 +85,7 @@ export default function EmployeeDetailPage() {
             </div>
           </div>
           <div className="space-y-5" aria-hidden="true">
-            {[5, 2].map((rows, i) => (
+            {[3, 2].map((rows, i) => (
               <div key={i}>
                 <div className="mb-2 h-4 w-24 animate-pulse rounded-[3px] bg-border" />
                 <div className="overflow-hidden rounded-[12px] border border-border bg-background divide-y divide-border">
@@ -134,7 +122,6 @@ export default function EmployeeDetailPage() {
   }
 
   const dept = DEPT_CONFIG[emp.department];
-  const status = STATUS_CONFIG[emp.status];
 
   return (
     <>
@@ -149,7 +136,6 @@ export default function EmployeeDetailPage() {
           <h2 className="mt-4 text-[20px] font-semibold tracking-[-0.01em] text-ink">
             {emp.firstName} {emp.lastName}
           </h2>
-          <p className="mt-0.5 text-[13px] text-muted">{emp.position}</p>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <span
@@ -157,10 +143,6 @@ export default function EmployeeDetailPage() {
               style={{ backgroundColor: dept?.bg, color: dept?.color }}
             >
               {emp.department}
-            </span>
-            <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${status.bg} ${status.text}`}>
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: status.dot }} />
-              {status.label}
             </span>
           </div>
 
@@ -207,8 +189,6 @@ export default function EmployeeDetailPage() {
                 {emp.department}
               </span>
             } />
-            <InfoRow label="ตำแหน่ง"     value={emp.position} />
-            <InfoRow label="วันที่เริ่มงาน" value={emp.startDate} />
           </Section>
 
           {/* ── ช่องทางติดต่อ ──────────────────────────────── */}
@@ -224,9 +204,6 @@ export default function EmployeeDetailPage() {
               </a>
             } />
           </Section>
-
-          {/* ── ประวัติพนักงาน ──────────────────────────────── */}
-          <EmployeeHistorySection employeeId={emp.id} />
 
           {/* ── ประวัติการอบรม ──────────────────────────────── */}
           <EmployeeTrainingSection employeeId={emp.id} />

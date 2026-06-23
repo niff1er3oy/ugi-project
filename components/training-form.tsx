@@ -46,7 +46,7 @@ function ParticipantPicker({ selected, onChange }: { selected: string[]; onChang
   const filtered = employees.filter((emp) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return `${emp.firstName} ${emp.lastName} ${emp.position} ${emp.department}`.toLowerCase().includes(q);
+    return `${emp.firstName} ${emp.lastName} ${emp.department}`.toLowerCase().includes(q);
   });
 
   const toggle = (id: string) => {
@@ -139,7 +139,7 @@ function ParticipantPicker({ selected, onChange }: { selected: string[]; onChang
                       <p className="text-[13px] font-medium text-ink">
                         {emp.firstName} {emp.lastName}
                       </p>
-                      <p className="text-[11px] text-muted">{emp.position}</p>
+                      <p className="text-[11px] text-muted">{emp.department}</p>
                     </div>
                     <span
                       className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"

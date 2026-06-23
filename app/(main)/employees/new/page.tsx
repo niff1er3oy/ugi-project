@@ -15,7 +15,7 @@ export default function NewEmployeePage() {
       type: "info",
       category: "ข้อมูลพนักงาน",
       title: "เพิ่มพนักงานใหม่",
-      message: `${data.firstName} ${data.lastName} เข้าร่วมทีม${data.department} ในตำแหน่ง${data.position}`,
+      message: `${data.firstName} ${data.lastName} เข้าร่วมทีม${data.department}`,
       href: `/employees/${id}`,
     });
     router.replace(`/employees/${id}`);

@@ -137,18 +137,8 @@ export default function CompanyDetailPage() {
             </div>
             <div className="h-8 w-px bg-border" />
             <div className="flex flex-col items-center">
-              <span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-success-text">{stats.active}</span>
-              <span className="mt-1 text-[10px] text-muted">ปฏิบัติงาน</span>
-            </div>
-            <div className="h-8 w-px bg-border" />
-            <div className="flex flex-col items-center">
-              <span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-accent-text">{stats.leave}</span>
-              <span className="mt-1 text-[10px] text-muted">ลาพัก</span>
-            </div>
-            <div className="h-8 w-px bg-border" />
-            <div className="flex flex-col items-center">
-              <span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-muted">{stats.resigned}</span>
-              <span className="mt-1 text-[10px] text-muted">ลาออก</span>
+              <span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{stats.departments.length}</span>
+              <span className="mt-1 text-[10px] text-muted">ทีม</span>
             </div>
           </div>
         </div>

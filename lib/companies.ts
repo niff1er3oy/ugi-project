@@ -18,9 +18,6 @@ export type Company = {
 
 export type CompanyStats = {
   total: number;
-  active: number;
-  leave: number;
-  resigned: number;
   departments: { name: string; count: number; color: string; bg: string }[];
 };
 
@@ -32,10 +29,7 @@ export function getCompanyStats(companyName: string, employees: Employee[]): Com
     deptMap.set(e.department, (deptMap.get(e.department) ?? 0) + 1);
   }
   return {
-    total:    emps.length,
-    active:   emps.filter((e) => e.status === "active").length,
-    leave:    emps.filter((e) => e.status === "leave").length,
-    resigned: emps.filter((e) => e.status === "resigned").length,
+    total: emps.length,
     departments: [...deptMap.entries()].map(([name, count]) => ({
       name, count,
       color: DEPT_CONFIG[name]?.color ?? "var(--muted)",
