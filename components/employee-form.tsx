@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { uploadFile } from "@/lib/upload";
-import { DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { getDeptColor, type Employee } from "@/lib/employees";
 import { fetchCompanies, type Company } from "@/lib/companies";
 
 export type EmployeeFormData = Omit<Employee, "id">;
@@ -179,7 +179,7 @@ export default function EmployeeForm({
 
   const currentCompany = companies.find((c) => c.name === form.company);
   const availableDepts = currentCompany?.departments ?? [];
-  const dept = DEPT_CONFIG[form.department];
+  const dept = getDeptColor(form.department);
   const initials = (form.firstName.charAt(0) || "?") + (form.lastName.charAt(0) || "");
 
   function handleCompanyChange(company: string) {

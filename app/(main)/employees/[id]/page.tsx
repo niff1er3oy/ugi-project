@@ -4,12 +4,12 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import { Section, InfoRow } from "@/components/detail-section";
-import { fetchEmployee, deleteEmployee, DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { fetchEmployee, deleteEmployee, getDeptColor, type Employee } from "@/lib/employees";
 import EmployeeTrainingSection from "@/components/employee-training-section";
 
 // ── Sub-components ─────────────────────────────────────────────
 function Avatar({ emp, size = 80 }: { emp: Employee; size?: number }) {
-  const dept = DEPT_CONFIG[emp.department];
+  const dept = getDeptColor(emp.department);
   const initials = emp.firstName.charAt(0) + emp.lastName.charAt(0);
 
   return (
@@ -117,7 +117,7 @@ export default function EmployeeDetailPage() {
     );
   }
 
-  const dept = DEPT_CONFIG[emp.department];
+  const dept = getDeptColor(emp.department);
 
   return (
     <>

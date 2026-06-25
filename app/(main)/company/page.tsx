@@ -68,8 +68,13 @@ function CompanyCard({ company, employees, index, onSelect }: { company: Company
   );
 }
 
-function CompanyDetailPanel({ company, employees, onClose, onEdit, onDeleted }: { company: Company; employees: Employee[]; onClose: () => void; onEdit: () => void; onDeleted: (id: string) => void }) {
+function CompanyDetailPanel({ company, employees, onClose, onEdit, onDeleted, onUpdated }: { company: Company; employees: Employee[]; onClose: () => void; onEdit: () => void; onDeleted: (id: string) => void; onUpdated: (c: Company) => void }) {
   const stats = getCompanyStats(company.name, employees);
+  const statsByName = new Map(stats.departments.map((d) => [d.name, d]));
+  const teamEntries = company.departments.map((name, idx) => {
+    const s = statsByName.get(name);
+    return { id: `dept-${idx}`, name, color: s?.color ?? "var(--muted)", bg: s?.bg ?? "var(--surface)", count: s?.count ?? 0 };
+  });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   async function handleDelete() {
@@ -107,7 +112,7 @@ function CompanyDetailPanel({ company, employees, onClose, onEdit, onDeleted }: 
       <div className="mb-6 flex items-center justify-around rounded-[12px] border border-border bg-surface px-4 py-3">
         <div className="flex flex-col items-center"><span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{stats.total}</span><span className="mt-1 text-[10px] text-muted">พนักงาน</span></div>
         <div className="h-8 w-px bg-border" />
-        <div className="flex flex-col items-center"><span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{stats.departments.length}</span><span className="mt-1 text-[10px] text-muted">ทีม</span></div>
+        <div className="flex flex-col items-center"><span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{company.departments.length}</span><span className="mt-1 text-[10px] text-muted">ทีม</span></div>
       </div>
 
       <div className="space-y-5">
@@ -116,7 +121,13 @@ function CompanyDetailPanel({ company, employees, onClose, onEdit, onDeleted }: 
           <InfoRow labelWidth="w-36" label="ประเภท" value={company.type} />
           {company.phone && <InfoRow labelWidth="w-36" label="โทรศัพท์" value={<a href={`tel:${company.phone}`} className="text-primary-text hover:underline">{company.phone}</a>} />}
         </Section>
-        <TeamManager teams={stats.departments.map((d) => ({ id: `dept-${d.name}`, name: d.name, color: d.color, bg: d.bg, count: d.count }))} />
+        <TeamManager
+          teams={teamEntries}
+          onUpdate={async (names) => {
+            await updateCompany(company.id, { departments: names });
+            onUpdated({ ...company, departments: names });
+          }}
+        />
       </div>
 
       <div className="mt-6 flex gap-2">
@@ -350,6 +361,7 @@ export default function CompanyPage() {
                 onClose={() => setSelectedId(null)}
                 onEdit={() => setPanelMode("edit")}
                 onDeleted={(id) => { setCompanies((prev) => prev.filter((c) => c.id !== id)); setSelectedId(null); }}
+                onUpdated={(updated) => setCompanies((prev) => prev.map((c) => c.id === updated.id ? updated : c))}
               />
             );
           })()}

@@ -7,7 +7,7 @@ import Navbar from "@/components/navbar";
 import {
   fetchEmployees, deleteEmployee,
   createEmployee, updateEmployee,
-  DEPT_CONFIG, DEPARTMENTS,
+  getDeptColor,
   type Employee,
 } from "@/lib/employees";
 import { fetchCompanies as getCompanies, type Company } from "@/lib/companies";
@@ -18,7 +18,7 @@ import type { EmployeeFormData } from "@/components/employee-form";
 
 // ── Sub-components ─────────────────────────────────────────────
 function EmpAvatar({ emp, size = 56 }: { emp: Employee; size?: number }) {
-  const dept = DEPT_CONFIG[emp.department];
+  const dept = getDeptColor(emp.department);
   const initials = emp.firstName.charAt(0) + emp.lastName.charAt(0);
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
@@ -37,7 +37,7 @@ function EmpAvatar({ emp, size = 56 }: { emp: Employee; size?: number }) {
 }
 
 function EmployeeCard({ emp, index, onSelect }: { emp: Employee; index: number; onSelect: (id: string) => void }) {
-  const dept = DEPT_CONFIG[emp.department];
+  const dept = getDeptColor(emp.department);
   return (
     <Link
       href={`/employees/${emp.id}`}
@@ -62,7 +62,7 @@ function EmployeeDetailPanel({
 }: {
   emp: Employee; onClose: () => void; onDelete: (id: string) => void; onEdit: () => void;
 }) {
-  const dept = DEPT_CONFIG[emp.department];
+  const dept = getDeptColor(emp.department);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   async function handleDelete() {
@@ -223,7 +223,12 @@ function EmployeesPageContent() {
     }
   }
 
-  const availableFilterDepts = companyFilter === "all" ? DEPARTMENTS : (companyDeptMap[companyFilter] ?? []);
+  const availableFilterDepts = useMemo(() => {
+    if (companyFilter !== "all") return companyDeptMap[companyFilter] ?? [];
+    const set = new Set<string>();
+    for (const c of companies) for (const d of c.departments ?? []) set.add(d);
+    return [...set].sort();
+  }, [companyFilter, companyDeptMap, companies]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/navbar";
 import { Section, InfoRow } from "@/components/detail-section";
 import { DepartmentChip } from "@/components/department-chip";
-import { fetchTask, deleteTask, type OffsiteTask } from "@/lib/offsite-tasks";
+import { fetchTask, deleteTask, formatDate, formatTime, type OffsiteTask } from "@/lib/offsite-tasks";
 
 export default function OffsiteDetailPage() {
   const router = useRouter();
@@ -131,9 +131,9 @@ export default function OffsiteDetailPage() {
 
           {/* ── ข้อมูลงาน ────────────────────────────────────── */}
           <Section label="ข้อมูลงาน">
-            <InfoRow label="เริ่มต้น"    value={`${task.startDate} · ${task.startTime}`} />
+            <InfoRow label="เริ่มต้น"    value={`${formatDate(task.startDate)} · ${formatTime(task.startTime)}`} />
             {task.endDate && (
-              <InfoRow label="สิ้นสุด"  value={`${task.endDate} · ${task.endTime}`} />
+              <InfoRow label="สิ้นสุด"  value={`${formatDate(task.endDate)} · ${formatTime(task.endTime ?? "")}`} />
             )}
             <InfoRow label="สถานที่"     value={task.location} />
             <InfoRow label="ทีม"         value={<DepartmentChip name={task.department} />} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchEmployees, DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { fetchEmployees, getDeptColor, type Employee } from "@/lib/employees";
 import { fetchCompanies, type Company } from "@/lib/companies";
 import {
   CATEGORIES,
@@ -61,7 +61,7 @@ function ParticipantPicker({ selected, onChange }: { selected: string[]; onChang
       {selectedEmps.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1.5">
           {selectedEmps.map((emp) => {
-            const dept = DEPT_CONFIG[emp.department];
+            const dept = getDeptColor(emp.department);
             return (
               <span
                 key={emp.id}
@@ -122,7 +122,7 @@ function ParticipantPicker({ selected, onChange }: { selected: string[]; onChang
               </p>
             ) : (
               filtered.map((emp) => {
-                const dept = DEPT_CONFIG[emp.department];
+                const dept = getDeptColor(emp.department);
                 const checked = selected.includes(emp.id);
                 return (
                   <label

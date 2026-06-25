@@ -108,7 +108,7 @@ function TeamInlineForm({
 
 // ── TeamManager ────────────────────────────────────────────────
 
-export default function TeamManager({ teams: initial }: { teams: TeamEntry[] }) {
+export default function TeamManager({ teams: initial, onUpdate }: { teams: TeamEntry[]; onUpdate?: (names: string[]) => void }) {
   const [teams, setTeams] = useState<TeamEntry[]>(initial);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
@@ -125,14 +125,13 @@ export default function TeamManager({ teams: initial }: { teams: TeamEntry[] }) 
 
   function saveEdit() {
     if (!editForm.name.trim()) return;
-    setTeams((ts) =>
-      ts.map((t) =>
-        t.id === editingId
-          ? { ...t, name: editForm.name.trim(), color: editForm.color, bg: editForm.bg }
-          : t,
-      ),
+    const newTeams = teams.map((t) =>
+      t.id === editingId
+        ? { ...t, name: editForm.name.trim(), color: editForm.color, bg: editForm.bg }
+        : t,
     );
-    // TODO: update in Firestore
+    setTeams(newTeams);
+    onUpdate?.(newTeams.map((t) => t.name));
     setEditingId(null);
   }
 
@@ -145,17 +144,9 @@ export default function TeamManager({ teams: initial }: { teams: TeamEntry[] }) 
 
   function saveAdd() {
     if (!addForm.name.trim()) return;
-    setTeams((ts) => [
-      ...ts,
-      {
-        id: crypto.randomUUID(),
-        name: addForm.name.trim(),
-        color: addForm.color,
-        bg: addForm.bg,
-        count: 0,
-      },
-    ]);
-    // TODO: save to Firestore
+    const newTeams = [...teams, { id: crypto.randomUUID(), name: addForm.name.trim(), color: addForm.color, bg: addForm.bg, count: 0 }];
+    setTeams(newTeams);
+    onUpdate?.(newTeams.map((t) => t.name));
     setAdding(false);
     setAddForm(EMPTY_FORM);
   }
@@ -167,8 +158,9 @@ export default function TeamManager({ teams: initial }: { teams: TeamEntry[] }) 
   }
 
   function commitDelete() {
-    setTeams((ts) => ts.filter((t) => t.id !== confirmDeleteId));
-    // TODO: delete from Firestore
+    const newTeams = teams.filter((t) => t.id !== confirmDeleteId);
+    setTeams(newTeams);
+    onUpdate?.(newTeams.map((t) => t.name));
     setConfirmDeleteId(null);
   }
 

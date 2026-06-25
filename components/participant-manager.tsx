@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { fetchEmployees, DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { fetchEmployees, getDeptColor, type Employee } from "@/lib/employees";
 import { updateTrainingParticipants } from "@/lib/training";
 
 type Mode = "view" | "remove" | "add";
@@ -128,7 +128,7 @@ export default function ParticipantManager({
         )}
 
         {members.map((emp) => {
-          const dept = DEPT_CONFIG[emp.department];
+          const dept = getDeptColor(emp.department);
           const initials = emp.firstName.charAt(0) + emp.lastName.charAt(0);
           const row = (
             <>
@@ -218,7 +218,7 @@ export default function ParticipantManager({
             ) : (
               <div className="max-h-52 overflow-y-auto divide-y divide-border">
                 {filteredAvailable.map((emp) => {
-                  const dept = DEPT_CONFIG[emp.department];
+                  const dept = getDeptColor(emp.department);
                   return (
                     <button
                       key={emp.id}

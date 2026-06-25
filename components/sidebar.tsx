@@ -22,7 +22,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex h-14 items-center border-b border-border px-5">
         <Link href="/" className="text-[15px] font-bold tracking-[-0.03em] text-primary-text">
-          UGI
+          {process.env.NEXT_PUBLIC_APP_NAME}
         </Link>
       </div>
 

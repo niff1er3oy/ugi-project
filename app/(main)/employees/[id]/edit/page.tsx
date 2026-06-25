@@ -4,7 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import EmployeeForm, { type EmployeeFormData } from "@/components/employee-form";
-import { fetchEmployee, updateEmployee, DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { fetchEmployee, updateEmployee, getDeptColor, type Employee } from "@/lib/employees";
 
 export default function EditEmployeePage() {
   const router = useRouter();
@@ -66,7 +66,7 @@ export default function EditEmployeePage() {
     );
   }
 
-  const dept = DEPT_CONFIG[emp.department];
+  const dept = getDeptColor(emp.department);
 
   return (
     <>

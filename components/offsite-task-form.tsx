@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { uploadFile } from "@/lib/upload";
 import { type OffsiteTask } from "@/lib/offsite-tasks";
+import { type Company } from "@/lib/companies";
 
 export type OffsiteTaskFormData = Omit<OffsiteTask, "id">;
 
@@ -159,18 +160,21 @@ function Field({ label, required, children }: { label: string; required?: boolea
 export default function OffsiteTaskForm({
   defaultValues,
   taskId,
-  departments = [],
+  companies = [],
   onSubmit,
   onCancel,
   submitLabel = "บันทึก",
 }: {
   defaultValues?: Partial<OffsiteTask>;
   taskId?: string;
-  departments?: string[];
+  companies?: Company[];
   onSubmit: (data: OffsiteTaskFormData) => void;
   onCancel: () => void;
   submitLabel?: string;
 }) {
+  const initCompany    = defaultValues?.company    ?? companies[0]?.name ?? "";
+  const initDepartment = defaultValues?.department ?? companies[0]?.departments[0] ?? "";
+
   const [form, setForm] = useState<OffsiteTaskFormData>({
     title:      defaultValues?.title      ?? "",
     type:       defaultValues?.type       ?? "",
@@ -178,12 +182,26 @@ export default function OffsiteTaskForm({
     startTime:  defaultValues?.startTime  ?? "",
     endDate:    defaultValues?.endDate,
     endTime:    defaultValues?.endTime,
-    department: defaultValues?.department ?? departments[0] ?? "",
+    company:    initCompany,
+    department: initDepartment,
     location:   defaultValues?.location   ?? "",
     note:       defaultValues?.note       ?? "",
     workPhotos: defaultValues?.workPhotos ?? [],
     photoURL:   defaultValues?.photoURL,
   });
+
+  const currentCompany   = companies.find((c) => c.name === form.company);
+  const availableDepts   = currentCompany?.departments ?? companies.flatMap((c) => c.departments);
+
+  function handleCompanyChange(name: string) {
+    const co    = companies.find((c) => c.name === name);
+    const depts = co?.departments ?? [];
+    setForm((f) => ({
+      ...f,
+      company:    name,
+      department: depts.includes(f.department) ? f.department : (depts[0] ?? ""),
+    }));
+  }
 
   const [iconUploading, setIconUploading] = useState(false);
   const [photoUploadingIdx, setPhotoUploadingIdx] = useState<number | null>(null);
@@ -251,6 +269,15 @@ export default function OffsiteTaskForm({
             required
           />
         </Field>
+        <Field label="บริษัท">
+          {companies.length === 0 ? (
+            <div className="field-input text-muted">ยังไม่มีบริษัทในระบบ — เพิ่มบริษัทก่อน</div>
+          ) : (
+            <select className="field-input" value={form.company ?? ""} onChange={(e) => handleCompanyChange(e.target.value)}>
+              {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+            </select>
+          )}
+        </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="ประเภทงาน">
             <input
@@ -261,12 +288,11 @@ export default function OffsiteTaskForm({
             />
           </Field>
           <Field label="ทีม">
-            {departments.length === 0 ? (
-              <div className="field-input text-muted">ยังไม่มีทีมในระบบ — เพิ่มทีมในหน้าบริษัทก่อน</div>
+            {availableDepts.length === 0 ? (
+              <div className="field-input text-muted">ไม่มีทีม</div>
             ) : (
-              <select className="field-input" value={form.department}
-                onChange={(e) => set("department", e.target.value)}>
-                {departments.map((d) => <option key={d} value={d}>{d}</option>)}
+              <select className="field-input" value={form.department} onChange={(e) => set("department", e.target.value)}>
+                {availableDepts.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             )}
           </Field>
@@ -286,19 +312,19 @@ export default function OffsiteTaskForm({
         <div className="grid grid-cols-2 gap-3">
           <Field label="วันที่เริ่ม" required>
             <input
+              type="date"
               className="field-input"
               value={form.startDate}
               onChange={(e) => set("startDate", e.target.value)}
-              placeholder="12 มิ.ย. 2568"
               required
             />
           </Field>
           <Field label="เวลาเริ่ม" required>
             <input
+              type="time"
               className="field-input"
               value={form.startTime}
               onChange={(e) => set("startTime", e.target.value)}
-              placeholder="09:00"
               required
             />
           </Field>
@@ -306,18 +332,18 @@ export default function OffsiteTaskForm({
         <div className="grid grid-cols-2 gap-3">
           <Field label="วันที่สิ้นสุด">
             <input
+              type="date"
               className="field-input"
               value={form.endDate ?? ""}
               onChange={(e) => set("endDate", e.target.value || undefined)}
-              placeholder="12 มิ.ย. 2568"
             />
           </Field>
           <Field label="เวลาสิ้นสุด">
             <input
+              type="time"
               className="field-input"
               value={form.endTime ?? ""}
               onChange={(e) => set("endTime", e.target.value || undefined)}
-              placeholder="11:30"
             />
           </Field>
         </div>

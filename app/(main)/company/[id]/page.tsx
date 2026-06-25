@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import { Section, InfoRow } from "@/components/detail-section";
 import TeamManager from "@/components/team-manager";
-import { fetchCompany, getCompanyStats, type Company } from "@/lib/companies";
+import { fetchCompany, updateCompany, getCompanyStats, type Company } from "@/lib/companies";
 import { fetchEmployees, type Employee } from "@/lib/employees";
 
 function CompanyLogo({ company, size = 72 }: { company: Company; size?: number }) {
@@ -110,6 +110,11 @@ export default function CompanyDetailPage() {
   }
 
   const stats = getCompanyStats(company.name, employees);
+  const statsByName = new Map(stats.departments.map((d) => [d.name, d]));
+  const teamEntries = company.departments.map((name, idx) => {
+    const s = statsByName.get(name);
+    return { id: `dept-${idx}`, name, color: s?.color ?? "var(--muted)", bg: s?.bg ?? "var(--surface)", count: s?.count ?? 0 };
+  });
 
   return (
     <>
@@ -137,7 +142,7 @@ export default function CompanyDetailPage() {
             </div>
             <div className="h-8 w-px bg-border" />
             <div className="flex flex-col items-center">
-              <span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{stats.departments.length}</span>
+              <span className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink">{company.departments.length}</span>
               <span className="mt-1 text-[10px] text-muted">ทีม</span>
             </div>
           </div>
@@ -164,13 +169,11 @@ export default function CompanyDetailPage() {
 
           {/* ── ทีมในบริษัท ───────────────────────────────────── */}
           <TeamManager
-            teams={stats.departments.map((d) => ({
-              id: `dept-${d.name}`,
-              name: d.name,
-              color: d.color,
-              bg: d.bg,
-              count: d.count,
-            }))}
+            teams={teamEntries}
+            onUpdate={async (names) => {
+              await updateCompany(params.id, { departments: names });
+              setCompany((c) => c ? { ...c, departments: names } : c);
+            }}
           />
 
           {/* ── ลิงก์ไปหน้าพนักงาน ────────────────────────────── */}

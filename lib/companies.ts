@@ -1,6 +1,6 @@
 import { getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { companiesRef, companyRef } from "@/lib/db";
-import { DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { getDeptColor, type Employee } from "@/lib/employees";
 
 // ── Types ──────────────────────────────────────────────────────
 export type Company = {
@@ -28,8 +28,7 @@ export function getCompanyStats(companyName: string, employees: Employee[]): Com
     total: emps.length,
     departments: [...deptMap.entries()].map(([name, count]) => ({
       name, count,
-      color: DEPT_CONFIG[name]?.color ?? "var(--muted)",
-      bg:    DEPT_CONFIG[name]?.bg    ?? "var(--surface)",
+      ...getDeptColor(name),
     })),
   };
 }

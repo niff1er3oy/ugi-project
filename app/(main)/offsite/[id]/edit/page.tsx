@@ -5,19 +5,19 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import OffsiteTaskForm, { type OffsiteTaskFormData } from "@/components/offsite-task-form";
 import { fetchTask, updateTask, type OffsiteTask } from "@/lib/offsite-tasks";
-import { fetchAllDepartments } from "@/lib/companies";
+import { fetchCompanies, type Company } from "@/lib/companies";
 
 export default function OffsiteEditPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState<OffsiteTask | null>(null);
-  const [departments, setDepartments] = useState<string[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
 
   useEffect(() => {
-    Promise.all([fetchTask(params.id), fetchAllDepartments()]).then(([data, depts]) => {
+    Promise.all([fetchTask(params.id), fetchCompanies()]).then(([data, cos]) => {
       setTask(data);
-      setDepartments(depts);
+      setCompanies(cos);
       setLoading(false);
     });
   }, [params.id]);
@@ -85,7 +85,7 @@ export default function OffsiteEditPage() {
         <OffsiteTaskForm
           defaultValues={task}
           taskId={task.id}
-          departments={departments}
+          companies={companies}
           submitLabel="บันทึกการเปลี่ยนแปลง"
           onSubmit={handleSubmit}
           onCancel={() => router.back()}

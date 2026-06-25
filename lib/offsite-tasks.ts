@@ -10,6 +10,7 @@ export type OffsiteTask = {
   startTime: string;
   endDate?: string;
   endTime?: string;
+  company?: string;
   department: string;
   location: string;
   note?: string;
@@ -17,7 +18,25 @@ export type OffsiteTask = {
   photoURL?: string;
 };
 
-// ── Helpers ────────────────────────────────────────────────────
+// ── Display helpers ────────────────────────────────────────────
+const THAI_MONTHS = [
+  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+];
+
+export function formatDate(dateStr: string): string {
+  const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return dateStr;
+  const [, y, mo, d] = m;
+  return `${parseInt(d, 10)} ${THAI_MONTHS[parseInt(mo, 10) - 1]} ${parseInt(y, 10) + 543}`;
+}
+
+export function formatTime(timeStr: string): string {
+  if (!timeStr) return timeStr;
+  return /^\d{2}:\d{2}$/.test(timeStr) ? `${timeStr} น.` : timeStr;
+}
+
+// ── Internal helpers ───────────────────────────────────────────
 function strip<T extends object>(obj: T): Partial<T> {
   return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
 }
