@@ -61,13 +61,17 @@ export async function fetchTraining(id: string): Promise<TrainingRecord | null> 
   return { id: snap.id, ...snap.data() } as TrainingRecord;
 }
 
+function strip<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
+}
+
 export async function createTraining(data: Omit<TrainingRecord, "id">): Promise<string> {
-  const ref = await addDoc(trainingRef(), data);
+  const ref = await addDoc(trainingRef(), strip(data));
   return ref.id;
 }
 
 export async function updateTraining(id: string, data: Partial<Omit<TrainingRecord, "id">>): Promise<void> {
-  await updateDoc(trainingDocRef(id), data);
+  await updateDoc(trainingDocRef(id), strip(data));
 }
 
 export async function deleteTraining(id: string): Promise<void> {

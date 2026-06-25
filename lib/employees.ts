@@ -8,8 +8,6 @@ export type Employee = {
   lastName: string;
   department: string;
   company: string;
-  phone: string;
-  email: string;
   photoURL?: string;
 };
 
@@ -24,6 +22,11 @@ export const DEPT_CONFIG: Record<string, { color: string; bg: string }> = {
 
 export const DEPARTMENTS = Object.keys(DEPT_CONFIG);
 
+// ── Helpers ────────────────────────────────────────────────────
+function strip<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
+}
+
 // ── Firestore CRUD ─────────────────────────────────────────────
 export async function fetchEmployees(): Promise<Employee[]> {
   const snap = await getDocs(query(employeesRef(), orderBy("firstName")));
@@ -37,12 +40,12 @@ export async function fetchEmployee(id: string): Promise<Employee | null> {
 }
 
 export async function createEmployee(data: Omit<Employee, "id">): Promise<string> {
-  const ref = await addDoc(employeesRef(), data);
+  const ref = await addDoc(employeesRef(), strip(data));
   return ref.id;
 }
 
 export async function updateEmployee(id: string, data: Partial<Omit<Employee, "id">>): Promise<void> {
-  await updateDoc(employeeRef(id), data);
+  await updateDoc(employeeRef(id), strip(data));
 }
 
 export async function deleteEmployee(id: string): Promise<void> {

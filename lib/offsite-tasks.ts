@@ -17,6 +17,11 @@ export type OffsiteTask = {
   photoURL?: string;
 };
 
+// ── Helpers ────────────────────────────────────────────────────
+function strip<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
+}
+
 // ── Firestore CRUD ─────────────────────────────────────────────
 export async function fetchTasks(): Promise<OffsiteTask[]> {
   const snap = await getDocs(offsiteRef());
@@ -30,12 +35,12 @@ export async function fetchTask(id: string): Promise<OffsiteTask | null> {
 }
 
 export async function createTask(data: Omit<OffsiteTask, "id">): Promise<string> {
-  const ref = await addDoc(offsiteRef(), data);
+  const ref = await addDoc(offsiteRef(), strip(data));
   return ref.id;
 }
 
 export async function updateTask(id: string, data: Partial<Omit<OffsiteTask, "id">>): Promise<void> {
-  await updateDoc(offsiteDocRef(id), data);
+  await updateDoc(offsiteDocRef(id), strip(data));
 }
 
 export async function deleteTask(id: string): Promise<void> {

@@ -140,8 +140,6 @@ export default function EmployeeForm({
     lastName:   defaultValues?.lastName   ?? "",
     company:    defaultValues?.company    ?? "",
     department: defaultValues?.department ?? "",
-    phone:      defaultValues?.phone      ?? "",
-    email:      defaultValues?.email      ?? "",
     photoURL:   defaultValues?.photoURL,
   });
   const [uploading, setUploading] = useState(false);
@@ -254,27 +252,6 @@ export default function EmployeeForm({
             )}
             {availableDepts.map((d) => <option key={d} value={d}>{d}</option>)}
           </select>
-        </Field>
-      </FormSection>
-
-      <FormSection label="ช่องทางติดต่อ">
-        <Field label="เบอร์โทรศัพท์">
-          <input
-            type="tel"
-            className="field-input"
-            value={form.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            placeholder="081-234-5678"
-          />
-        </Field>
-        <Field label="อีเมล">
-          <input
-            type="email"
-            className="field-input"
-            value={form.email}
-            onChange={(e) => set("email", e.target.value)}
-            placeholder="name@ugi.co.th"
-          />
         </Field>
       </FormSection>
 

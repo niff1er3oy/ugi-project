@@ -134,11 +134,7 @@ export default function CompanyForm({
   const [form, setForm] = useState<CompanyFormData>({
     name:        defaultValues?.name        ?? "",
     type:        defaultValues?.type        ?? "นิติบุคคล",
-    taxId:       defaultValues?.taxId       ?? "",
-    address:     defaultValues?.address     ?? "",
     phone:       defaultValues?.phone       ?? "",
-    email:       defaultValues?.email       ?? "",
-    website:     defaultValues?.website     ?? "",
     logoURL:     defaultValues?.logoURL,
     departments: defaultValues?.departments ?? [],
   });
@@ -196,7 +192,7 @@ export default function CompanyForm({
               <button
                 key={t}
                 type="button"
-                onClick={() => { set("type", t); set("taxId", ""); }}
+                onClick={() => set("type", t)}
                 className={`flex-1 rounded-[6px] border py-2 text-[13px] font-medium transition-colors duration-150 ${
                   form.type === t
                     ? "border-primary bg-primary text-white"
@@ -208,18 +204,6 @@ export default function CompanyForm({
             ))}
           </div>
         </Field>
-        <Field label={form.type === "นิติบุคคล" ? "เลขนิติบุคคล" : "เลขบัตรประชาชน"}>
-          <input
-            className="field-input font-mono"
-            value={form.taxId}
-            onChange={(e) => set("taxId", e.target.value)}
-            placeholder={form.type === "นิติบุคคล" ? "0105556123456" : "1234567890123"}
-            maxLength={13}
-          />
-        </Field>
-      </FormSection>
-
-      <FormSection label="ช่องทางติดต่อ">
         <Field label="โทรศัพท์">
           <input
             type="tel"
@@ -227,32 +211,6 @@ export default function CompanyForm({
             value={form.phone}
             onChange={(e) => set("phone", e.target.value)}
             placeholder="02-200-3000"
-          />
-        </Field>
-        <Field label="อีเมล">
-          <input
-            type="email"
-            className="field-input"
-            value={form.email}
-            onChange={(e) => set("email", e.target.value)}
-            placeholder="info@company.co.th"
-          />
-        </Field>
-        <Field label="เว็บไซต์">
-          <input
-            className="field-input"
-            value={form.website}
-            onChange={(e) => set("website", e.target.value)}
-            placeholder="www.ugi.co.th"
-          />
-        </Field>
-        <Field label="ที่อยู่">
-          <textarea
-            className="field-input min-h-[72px] resize-none"
-            value={form.address}
-            onChange={(e) => set("address", e.target.value)}
-            placeholder="เลขที่ ถนน แขวง เขต จังหวัด รหัสไปรษณีย์"
-            rows={3}
           />
         </Field>
       </FormSection>

@@ -30,7 +30,7 @@ export default function EditEmployeePage() {
         <Navbar title="แก้ไขข้อมูลพนักงาน" />
         <main className="mx-auto w-full max-w-2xl px-4 py-6" aria-busy="true">
           <div className="space-y-7" aria-hidden="true">
-            {[3, 2].map((fields, i) => (
+            {[3].map((fields, i) => (
               <div key={i}>
                 <div className="mb-3 h-3 w-20 animate-pulse rounded-[3px] bg-border" />
                 <div className="space-y-3">

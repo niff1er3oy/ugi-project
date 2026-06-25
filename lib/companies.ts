@@ -7,11 +7,7 @@ export type Company = {
   id: string;
   name: string;
   type: "นิติบุคคล" | "บุคคลธรรมดา";
-  taxId: string;
-  address: string;
   phone: string;
-  email: string;
-  website: string;
   departments: string[];
   logoURL?: string;
 };
@@ -38,6 +34,11 @@ export function getCompanyStats(companyName: string, employees: Employee[]): Com
   };
 }
 
+// ── Helpers ────────────────────────────────────────────────────
+function strip<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
+}
+
 // ── Firestore CRUD ─────────────────────────────────────────────
 export async function fetchCompanies(): Promise<Company[]> {
   const snap = await getDocs(query(companiesRef(), orderBy("name")));
@@ -51,12 +52,12 @@ export async function fetchCompany(id: string): Promise<Company | null> {
 }
 
 export async function createCompany(data: Omit<Company, "id">): Promise<string> {
-  const ref = await addDoc(companiesRef(), data);
+  const ref = await addDoc(companiesRef(), strip(data));
   return ref.id;
 }
 
 export async function updateCompany(id: string, data: Partial<Omit<Company, "id">>): Promise<void> {
-  await updateDoc(companyRef(id), data);
+  await updateDoc(companyRef(id), strip(data));
 }
 
 export async function deleteCompany(id: string): Promise<void> {
