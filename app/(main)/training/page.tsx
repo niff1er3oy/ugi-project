@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo, Suspense } from "react";
 import Navbar from "@/components/navbar";
@@ -31,9 +32,10 @@ function TrainingCard({ record, index, onSelect }: { record: TrainingRecord; ind
   const cat = CATEGORY_CONFIG[record.category];
 
   return (
-    <button
-      onClick={() => onSelect(record.id)}
-      className="block w-full text-left rounded-[12px] border border-border bg-background transition-shadow duration-150 hover:shadow-sm animate-enter-stagger"
+    <Link
+      href={`/training/${record.id}`}
+      onClick={(e) => { if (window.innerWidth >= 1024) { e.preventDefault(); onSelect(record.id); } }}
+      className="block rounded-[12px] border border-border bg-background transition-shadow duration-150 hover:shadow-sm animate-enter-stagger"
       style={{ "--i": index } as React.CSSProperties}
     >
       <div className="flex items-start gap-3 px-4 pt-4">
@@ -71,7 +73,7 @@ function TrainingCard({ record, index, onSelect }: { record: TrainingRecord; ind
           {record.participants.length} คน
         </span>
       </div>
-    </button>
+    </Link>
   );
 }
 
