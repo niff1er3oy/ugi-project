@@ -11,6 +11,7 @@ import {
   type TrainingCategory, type TrainingRecord,
 } from "@/lib/training";
 import TrainingForm, { type TrainingFormData } from "@/components/training-form";
+import { createNotification } from "@/lib/notifications";
 
 // ── Category icon ───────────────────────────────────────────────
 function CategoryIcon({ category, size = 40 }: { category: TrainingCategory; size?: number }) {
@@ -119,13 +120,8 @@ function TrainingDetailPanel({ record, onClose, onEdit, onDeleted }: { record: T
         <Section label="ข้อมูลหลักสูตร">
           <InfoRow label="วันที่"         value={record.endDate ? `${record.date} – ${record.endDate}` : record.date} />
           <InfoRow label="จำนวนชั่วโมง"  value={`${record.hours} ชั่วโมง`} />
+          {record.location && <InfoRow label="สถานที่" value={record.location} />}
           <InfoRow label="รหัสการอบรม"   value={<span className="font-mono text-[12px]">{record.id}</span>} />
-        </Section>
-
-        <Section label="สถานที่และหน่วยงาน">
-          <InfoRow label="สถานที่" value={record.location} />
-          <InfoRow label="บริษัท"  value={record.company} />
-          {record.department && <InfoRow label="ทีม" value={record.department} />}
         </Section>
 
         <ParticipantManager key={record.id} trainingId={record.id} participants={record.participants} />
@@ -168,6 +164,13 @@ function TrainingDetailPanel({ record, onClose, onEdit, onDeleted }: { record: T
 function TrainingEditPanel({ record, onDone, onSaved }: { record: TrainingRecord; onDone: () => void; onSaved: (updated: TrainingRecord) => void }) {
   async function handleSubmit(data: TrainingFormData) {
     await updateTraining(record.id, data);
+    await createNotification({
+      type: "info",
+      category: "การอบรม",
+      title: `แก้ไขการอบรม: ${data.title}`,
+      message: `${data.category} · ${data.location}`,
+      href: `/training/${record.id}`,
+    });
     onSaved({ ...record, ...data });
     onDone();
   }
@@ -238,7 +241,7 @@ function TrainingPageContent() {
     return records.filter((r) => {
       if (categoryFilter !== "all" && r.category !== categoryFilter) return false;
       if (q) {
-        const hay = [r.title, r.location, r.company, r.department ?? "", r.id, r.note ?? ""].join(" ").toLowerCase();
+        const hay = [r.title, r.location, r.id, r.note ?? ""].join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;

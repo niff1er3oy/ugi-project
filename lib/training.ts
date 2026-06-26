@@ -12,8 +12,6 @@ export type TrainingRecord = {
   endDate?: string;
   hours: number;
   location: string;
-  company: string;
-  department?: string;
   participants: string[];
   note?: string;
 };

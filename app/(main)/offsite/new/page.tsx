@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/navbar";
 import OffsiteTaskForm, { type OffsiteTaskFormData } from "@/components/offsite-task-form";
-import { createTask, type OffsiteTask } from "@/lib/offsite-tasks";
+import { createTask, formatDate, type OffsiteTask } from "@/lib/offsite-tasks";
 import { createNotification } from "@/lib/notifications";
 import { fetchCompanies, type Company } from "@/lib/companies";
 
@@ -21,8 +21,8 @@ export default function OffsiteNewPage() {
     await createNotification({
       type: "info",
       category: "การปฏิบัติงานนอกสถานที่",
-      title: "สร้างงานนอกสถานที่ใหม่",
-      message: `${data.title} (${data.type}) — ${data.department} · ${data.startDate}`,
+      title: `สร้างงานนอกสถานที่ใหม่: ${data.title}`,
+      message: `${data.type} · ${formatDate(data.startDate)}`,
       href: `/offsite/${id}`,
     });
     router.replace(`/offsite/${id}`);

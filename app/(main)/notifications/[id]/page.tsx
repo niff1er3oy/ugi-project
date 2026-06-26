@@ -7,7 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Navbar from "@/components/navbar";
 import {
-  fetchNotifications, markNotifRead, formatNotifTime,
+  fetchNotification, markNotifRead, formatNotifTime,
   TYPE_CONFIG, type AppNotification,
 } from "@/lib/notifications";
 
@@ -25,9 +25,7 @@ export default function NotificationDetailPage() {
   }, [router]);
 
   useEffect(() => {
-    fetchNotifications().then((list) => {
-      setNotif(list.find((n) => n.id === params.id) ?? null);
-    });
+    fetchNotification(params.id).then((n) => setNotif(n));
   }, [params.id]);
 
   useEffect(() => {
@@ -96,7 +94,10 @@ export default function NotificationDetailPage() {
         <h1 className="mb-3 text-[19px] font-semibold leading-snug tracking-[-0.01em] text-ink">
           {notif.title}
         </h1>
-        <p className="text-[14px] text-muted leading-relaxed mb-8">{notif.message}</p>
+        <p className="text-[14px] text-muted leading-relaxed mb-3">{notif.message}</p>
+        {notif.actorName && (
+          <p className="text-[12px] text-muted mb-8">โดย {notif.actorName}</p>
+        )}
 
         <Link
           href={notif.href}

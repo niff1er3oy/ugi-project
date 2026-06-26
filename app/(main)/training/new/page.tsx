@@ -14,8 +14,8 @@ export default function TrainingNewPage() {
     await createNotification({
       type: "info",
       category: "การอบรม",
-      title: "บันทึกการอบรมใหม่",
-      message: `${data.title} (${data.category}) วันที่ ${data.date}`,
+      title: `เพิ่มการอบรมใหม่: ${data.title}`,
+      message: `${data.category} · ${data.location}`,
       href: `/training/${id}`,
     });
     router.replace(`/training/${id}`);

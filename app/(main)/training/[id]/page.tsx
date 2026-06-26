@@ -63,7 +63,7 @@ export default function TrainingDetailPage() {
             <div className="mt-2 h-4 w-24 animate-pulse rounded-full bg-border" />
           </div>
           <div className="space-y-5" aria-hidden="true">
-            {[4, 3].map((rows, i) => (
+            {[4].map((rows, i) => (
               <div key={i}>
                 <div className="mb-2 h-4 w-24 animate-pulse rounded-[3px] bg-border" />
                 <div className="overflow-hidden rounded-[12px] border border-border bg-background divide-y divide-border">
@@ -123,13 +123,8 @@ export default function TrainingDetailPage() {
           <Section label="ข้อมูลหลักสูตร">
             <InfoRow label="วันที่"         value={record.endDate ? `${record.date} – ${record.endDate}` : record.date} />
             <InfoRow label="จำนวนชั่วโมง"  value={`${record.hours} ชั่วโมง`} />
+            {record.location && <InfoRow label="สถานที่" value={record.location} />}
             <InfoRow label="รหัสการอบรม"   value={<span className="font-mono text-[12px]">{record.id}</span>} />
-          </Section>
-
-          <Section label="สถานที่และหน่วยงาน">
-            <InfoRow label="สถานที่" value={record.location} />
-            <InfoRow label="บริษัท"  value={record.company} />
-            {record.department && <InfoRow label="ทีม" value={record.department} />}
           </Section>
 
           <ParticipantManager trainingId={record.id} participants={record.participants} />

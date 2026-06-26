@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import TrainingForm, { type TrainingFormData } from "@/components/training-form";
 import { fetchTraining, updateTraining, type TrainingRecord } from "@/lib/training";
+import { createNotification } from "@/lib/notifications";
 
 export default function TrainingEditPage() {
   const router = useRouter();
@@ -21,6 +22,13 @@ export default function TrainingEditPage() {
 
   async function handleSubmit(data: TrainingFormData) {
     await updateTraining(params.id, data);
+    await createNotification({
+      type: "info",
+      category: "การอบรม",
+      title: `แก้ไขการอบรม: ${data.title}`,
+      message: `${data.category} · ${data.location}`,
+      href: `/training/${params.id}`,
+    });
     router.back();
   }
 

@@ -114,7 +114,10 @@ function DetailPanel({
       <h2 className="text-[17px] font-semibold leading-snug tracking-[-0.01em] text-ink mb-3">
         {n.title}
       </h2>
-      <p className="text-[13px] text-muted leading-relaxed mb-6">{n.message}</p>
+      <p className="text-[13px] text-muted leading-relaxed mb-2">{n.message}</p>
+      {n.actorName && (
+        <p className="text-[12px] text-muted mb-6">โดย {n.actorName}</p>
+      )}
 
       <p className="text-[11px] text-muted mb-6">{formatNotifTime(n.createdAt)}</p>
 

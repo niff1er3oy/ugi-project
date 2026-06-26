@@ -11,6 +11,7 @@ import {
   formatDate, formatTime,
   type OffsiteTask,
 } from "@/lib/offsite-tasks";
+import { createNotification } from "@/lib/notifications";
 import { fetchCompanies, type Company } from "@/lib/companies";
 import OffsiteTaskForm, { type OffsiteTaskFormData } from "@/components/offsite-task-form";
 
@@ -170,6 +171,13 @@ function OffsiteDetailPanel({ task, onClose, onEdit, onDeleted }: { task: Offsit
 function OffsiteEditPanel({ task, companies, onDone, onSaved }: { task: OffsiteTask; companies: Company[]; onDone: () => void; onSaved: (updated: OffsiteTask) => void }) {
   async function handleSubmit(data: OffsiteTaskFormData) {
     await updateTask(task.id, data);
+    await createNotification({
+      type: "info",
+      category: "การปฏิบัติงานนอกสถานที่",
+      title: `แก้ไขงานนอกสถานที่: ${data.title}`,
+      message: `${data.type} · ${formatDate(data.startDate)}`,
+      href: `/offsite/${task.id}`,
+    });
     onSaved({ ...task, ...data });
     onDone();
   }

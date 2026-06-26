@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import EmployeeForm, { type EmployeeFormData } from "@/components/employee-form";
 import { fetchEmployee, updateEmployee, getDeptColor, type Employee } from "@/lib/employees";
+import { createNotification } from "@/lib/notifications";
 
 export default function EditEmployeePage() {
   const router = useRouter();
@@ -21,6 +22,13 @@ export default function EditEmployeePage() {
 
   async function handleSubmit(data: EmployeeFormData) {
     await updateEmployee(params.id, data);
+    await createNotification({
+      type: "info",
+      category: "ข้อมูลพนักงาน",
+      title: `แก้ไขข้อมูลพนักงาน: ${data.firstName} ${data.lastName}`,
+      message: `${data.department} · ${data.company}`,
+      href: `/employees/${params.id}`,
+    });
     router.back();
   }
 

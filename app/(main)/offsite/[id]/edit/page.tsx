@@ -4,8 +4,9 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import OffsiteTaskForm, { type OffsiteTaskFormData } from "@/components/offsite-task-form";
-import { fetchTask, updateTask, type OffsiteTask } from "@/lib/offsite-tasks";
+import { fetchTask, updateTask, formatDate, type OffsiteTask } from "@/lib/offsite-tasks";
 import { fetchCompanies, type Company } from "@/lib/companies";
+import { createNotification } from "@/lib/notifications";
 
 export default function OffsiteEditPage() {
   const router = useRouter();
@@ -24,6 +25,13 @@ export default function OffsiteEditPage() {
 
   async function handleSubmit(data: OffsiteTaskFormData) {
     await updateTask(params.id, data);
+    await createNotification({
+      type: "info",
+      category: "การปฏิบัติงานนอกสถานที่",
+      title: `แก้ไขงานนอกสถานที่: ${data.title}`,
+      message: `${data.type} · ${formatDate(data.startDate)}`,
+      href: `/offsite/${params.id}`,
+    });
     router.back();
   }
 

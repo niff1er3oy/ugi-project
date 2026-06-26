@@ -140,7 +140,7 @@ export default function ParticipantManager({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-medium text-ink">{emp.firstName} {emp.lastName}</p>
-                <p className="text-[11px] text-muted">{emp.department}</p>
+                <p className="text-[11px] text-muted">{emp.company} · {emp.department}</p>
               </div>
             </>
           );
@@ -233,7 +233,7 @@ export default function ParticipantManager({
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-medium text-ink">{emp.firstName} {emp.lastName}</p>
-                        <p className="text-[11px] text-muted">{emp.department}</p>
+                        <p className="text-[11px] text-muted">{emp.company} · {emp.department}</p>
                       </div>
                       <svg className="h-4 w-4 shrink-0 text-primary-text" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

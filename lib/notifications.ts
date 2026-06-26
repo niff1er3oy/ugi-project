@@ -1,9 +1,9 @@
 import {
-  getDocs, addDoc, updateDoc, onSnapshot,
-  query, orderBy, Timestamp,
+  getDocs, getDoc, addDoc, updateDoc, onSnapshot,
+  query, orderBy,
 } from "firebase/firestore";
 import { arrayUnion } from "firebase/firestore";
-import { notificationsRef, notificationDocRef } from "@/lib/db";
+import { notificationsRef, notificationDocRef, userRef } from "@/lib/db";
 import { auth } from "@/lib/firebase/client";
 
 // ── Types ──────────────────────────────────────────────────────
@@ -19,6 +19,7 @@ export type AppNotification = {
   href: string;
   createdAt: string;
   createdBy: string;
+  actorName?: string;
   readBy: string[];
 };
 
@@ -27,12 +28,6 @@ export const TYPE_CONFIG: Record<NotifType, { bg: string; text: string; dot: str
   info:    { bg: "bg-primary-ghost", text: "text-primary-text", dot: "var(--primary)" },
   warning: { bg: "bg-accent-pale",   text: "text-accent-text",  dot: "var(--accent)"  },
   error:   { bg: "bg-error-pale",    text: "text-error",        dot: "var(--error)"   },
-};
-
-export const CATEGORY_CONFIG: Record<NotifCategory, { label: string }> = {
-  "ข้อมูลพนักงาน":              { label: "ข้อมูลพนักงาน" },
-  "การอบรม":                    { label: "การอบรม" },
-  "การปฏิบัติงานนอกสถานที่":   { label: "การปฏิบัติงานนอกสถานที่" },
 };
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -55,8 +50,14 @@ export async function createNotification(
 ): Promise<void> {
   const user = auth.currentUser;
   if (!user) return;
+  const userSnap = await getDoc(userRef(user.uid));
+  const ud = userSnap.data();
+  const actorName = ud?.firstName && ud?.lastName
+    ? `${ud.firstName} ${ud.lastName}`
+    : (user.email ?? "ผู้ใช้");
   await addDoc(notificationsRef(), {
     ...data,
+    actorName,
     createdAt: new Date().toISOString(),
     createdBy: user.uid,
     readBy: [],
@@ -66,6 +67,12 @@ export async function createNotification(
 export async function fetchNotifications(): Promise<AppNotification[]> {
   const snap = await getDocs(query(notificationsRef(), orderBy("createdAt", "desc")));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppNotification));
+}
+
+export async function fetchNotification(id: string): Promise<AppNotification | null> {
+  const snap = await getDoc(notificationDocRef(id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as AppNotification;
 }
 
 export async function markNotifRead(notifId: string, uid: string): Promise<void> {

@@ -48,5 +48,5 @@ export function useNotifications() {
 
 export function useNotificationCount() {
   const { unreadCount } = useContext(NotifContext);
-  return { unreadCount, setUnreadCount: () => {} };
+  return { unreadCount };
 }
