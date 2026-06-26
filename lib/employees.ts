@@ -1,45 +1,37 @@
 import { getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
-import { employeesRef, employeeRef, historyRef } from "@/lib/db";
+import { employeesRef, employeeRef } from "@/lib/db";
 
 // ── Types ──────────────────────────────────────────────────────
-export type EmpStatus = "active" | "leave" | "resigned";
-
-export type HistoryEntry = {
-  date: string;
-  status: EmpStatus;
-  note?: string;
-};
-
 export type Employee = {
   id: string;
   firstName: string;
   lastName: string;
-  status: EmpStatus;
   department: string;
   company: string;
-  position: string;
-  phone: string;
-  email: string;
-  startDate: string;
   photoURL?: string;
 };
 
 // ── Config ─────────────────────────────────────────────────────
-export const DEPT_CONFIG: Record<string, { color: string; bg: string }> = {
-  "ฝ่ายผลิต":        { color: "var(--accent-text)",   bg: "var(--accent-pale)"   },
-  "ฝ่ายวิศวกรรม":    { color: "var(--primary-text)",  bg: "var(--primary-ghost)" },
-  "ฝ่าย HR":         { color: "var(--inspect-color)",  bg: "var(--inspect-bg)"    },
-  "ฝ่ายบัญชี":       { color: "var(--success-text)",  bg: "var(--success-pale)"  },
-  "ฝ่ายความปลอดภัย": { color: "var(--error)",         bg: "var(--error-pale)"    },
-};
+const DEPT_PALETTE = [
+  { color: "oklch(0.44 0.27 292)", bg: "oklch(0.94 0.055 292)" },
+  { color: "oklch(0.42 0.14 195)", bg: "oklch(0.93 0.04 195)"  },
+  { color: "oklch(0.50 0.17 25)",  bg: "oklch(0.95 0.04 25)"   },
+  { color: "oklch(0.42 0.16 145)", bg: "oklch(0.93 0.06 145)"  },
+  { color: "oklch(0.46 0.16 75)",  bg: "oklch(0.95 0.04 75)"   },
+  { color: "oklch(0.50 0.18 350)", bg: "oklch(0.95 0.04 350)"  },
+  { color: "oklch(0.44 0.20 250)", bg: "oklch(0.94 0.04 250)"  },
+  { color: "oklch(0.40 0.01 292)", bg: "oklch(0.94 0.005 292)" },
+];
 
-export const STATUS_CONFIG: Record<EmpStatus, { label: string; dot: string; bg: string; text: string }> = {
-  active:   { label: "ปฏิบัติงาน", dot: "var(--success)", bg: "bg-success-pale",  text: "text-success-text"  },
-  leave:    { label: "ลาพัก",      dot: "var(--accent)",  bg: "bg-accent-pale",   text: "text-accent-text"   },
-  resigned: { label: "ลาออก",      dot: "var(--muted)",   bg: "bg-surface",       text: "text-muted"         },
-};
+export function getDeptColor(name: string): { color: string; bg: string } {
+  const idx = [...name].reduce((s, c) => s + c.charCodeAt(0), 0) % DEPT_PALETTE.length;
+  return DEPT_PALETTE[idx];
+}
 
-export const DEPARTMENTS = Object.keys(DEPT_CONFIG);
+// ── Helpers ────────────────────────────────────────────────────
+function strip<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
+}
 
 // ── Firestore CRUD ─────────────────────────────────────────────
 export async function fetchEmployees(): Promise<Employee[]> {
@@ -54,24 +46,14 @@ export async function fetchEmployee(id: string): Promise<Employee | null> {
 }
 
 export async function createEmployee(data: Omit<Employee, "id">): Promise<string> {
-  const ref = await addDoc(employeesRef(), data);
+  const ref = await addDoc(employeesRef(), strip(data));
   return ref.id;
 }
 
 export async function updateEmployee(id: string, data: Partial<Omit<Employee, "id">>): Promise<void> {
-  await updateDoc(employeeRef(id), data);
+  await updateDoc(employeeRef(id), strip(data));
 }
 
 export async function deleteEmployee(id: string): Promise<void> {
   await deleteDoc(employeeRef(id));
-}
-
-// ── History subcollection ──────────────────────────────────────
-export async function fetchEmployeeHistory(empId: string): Promise<HistoryEntry[]> {
-  const snap = await getDocs(historyRef(empId));
-  return snap.docs.map((d) => d.data() as HistoryEntry);
-}
-
-export async function addEmployeeHistory(empId: string, entry: HistoryEntry): Promise<void> {
-  await addDoc(historyRef(empId), entry);
 }

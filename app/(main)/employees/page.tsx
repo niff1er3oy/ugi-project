@@ -7,28 +7,18 @@ import Navbar from "@/components/navbar";
 import {
   fetchEmployees, deleteEmployee,
   createEmployee, updateEmployee,
-  DEPT_CONFIG, STATUS_CONFIG, DEPARTMENTS,
-  type Employee, type EmpStatus,
+  getDeptColor,
+  type Employee,
 } from "@/lib/employees";
 import { fetchCompanies as getCompanies, type Company } from "@/lib/companies";
-import EmployeeHistorySection from "@/components/employee-history";
 import EmployeeTrainingSection from "@/components/employee-training-section";
 import { Section, InfoRow } from "@/components/detail-section";
 import EmployeeForm from "@/components/employee-form";
 import type { EmployeeFormData } from "@/components/employee-form";
 
-// ── Filter options ─────────────────────────────────────────────
-const STATUS_FILTER_OPTS: { value: EmpStatus | "all"; label: string }[] = [
-  { value: "all",      label: "ทั้งหมด"    },
-  { value: "active",   label: "ปฏิบัติงาน" },
-  { value: "leave",    label: "ลาพัก"      },
-  { value: "resigned", label: "ลาออก"      },
-];
-
 // ── Sub-components ─────────────────────────────────────────────
 function EmpAvatar({ emp, size = 56 }: { emp: Employee; size?: number }) {
-  const dept = DEPT_CONFIG[emp.department];
-  const status = STATUS_CONFIG[emp.status];
+  const dept = getDeptColor(emp.department);
   const initials = emp.firstName.charAt(0) + emp.lastName.charAt(0);
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
@@ -42,22 +32,17 @@ function EmpAvatar({ emp, size = 56 }: { emp: Employee; size?: number }) {
           {initials}
         </div>
       )}
-      <span
-        className="absolute rounded-full border-2 border-background"
-        style={{ width: size * 0.22, height: size * 0.22, bottom: size * 0.02, right: size * 0.02, backgroundColor: status.dot }}
-      />
     </div>
   );
 }
 
 function EmployeeCard({ emp, index, onSelect }: { emp: Employee; index: number; onSelect: (id: string) => void }) {
-  const dept = DEPT_CONFIG[emp.department];
-  const status = STATUS_CONFIG[emp.status];
+  const dept = getDeptColor(emp.department);
   return (
     <Link
       href={`/employees/${emp.id}`}
       onClick={(e) => { if (window.innerWidth >= 1024) { e.preventDefault(); onSelect(emp.id); } }}
-      className={`flex flex-col items-center rounded-[14px] border border-border bg-background p-4 text-center transition-all duration-150 hover:border-border-strong hover:shadow-sm animate-enter-stagger ${emp.status === "resigned" ? "opacity-55" : ""}`}
+      className={`flex flex-col items-center rounded-[14px] border border-border bg-background p-4 text-center transition-all duration-150 hover:border-border-strong hover:shadow-sm animate-enter-stagger`}
       style={{ "--i": index } as React.CSSProperties}
     >
       <EmpAvatar emp={emp} />
@@ -67,9 +52,6 @@ function EmployeeCard({ emp, index, onSelect }: { emp: Employee; index: number; 
           {emp.department}
         </span>
       )}
-      <span className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[10px] font-medium ${status.bg} ${status.text}`}>
-        {status.label}
-      </span>
       <p className="mt-3 w-full border-t border-border pt-2.5 text-[11px] text-muted">{emp.id}</p>
     </Link>
   );
@@ -80,8 +62,7 @@ function EmployeeDetailPanel({
 }: {
   emp: Employee; onClose: () => void; onDelete: (id: string) => void; onEdit: () => void;
 }) {
-  const dept = DEPT_CONFIG[emp.department];
-  const status = STATUS_CONFIG[emp.status];
+  const dept = getDeptColor(emp.department);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   async function handleDelete() {
@@ -108,22 +89,8 @@ function EmployeeDetailPanel({
       <div className="mb-6 flex flex-col items-center text-center">
         <EmpAvatar emp={emp} size={72} />
         <h2 className="mt-4 text-[20px] font-semibold tracking-[-0.01em] text-ink">{emp.firstName} {emp.lastName}</h2>
-        <p className="mt-0.5 text-[13px] text-muted">{emp.position}</p>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold" style={{ backgroundColor: dept?.bg, color: dept?.color }}>{emp.department}</span>
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${status.bg} ${status.text}`}>
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: status.dot }} />{status.label}
-          </span>
-        </div>
-        <div className="mt-5 flex gap-3">
-          <a href={`tel:${emp.phone}`} className="flex items-center gap-2 rounded-[8px] border border-border bg-background px-4 py-2 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-95">
-            <svg className="h-4 w-4 text-primary-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z" /></svg>
-            โทร
-          </a>
-          <a href={`mailto:${emp.email}`} className="flex items-center gap-2 rounded-[8px] border border-border bg-background px-4 py-2 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-95">
-            <svg className="h-4 w-4 text-primary-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
-            อีเมล
-          </a>
         </div>
       </div>
 
@@ -134,14 +101,7 @@ function EmployeeDetailPanel({
           <InfoRow label="ทีม"          value={
             <span className="inline-flex items-center rounded-full px-2.5 py-[3px] text-[11px] font-semibold" style={{ backgroundColor: dept?.bg, color: dept?.color }}>{emp.department}</span>
           } />
-          <InfoRow label="ตำแหน่ง"       value={emp.position} />
-          <InfoRow label="วันที่เริ่มงาน" value={emp.startDate} />
         </Section>
-        <Section label="ช่องทางติดต่อ">
-          <InfoRow label="เบอร์โทรศัพท์" value={<a href={`tel:${emp.phone}`} className="text-primary-text hover:underline">{emp.phone}</a>} />
-          <InfoRow label="อีเมล"          value={<a href={`mailto:${emp.email}`} className="break-all text-primary-text hover:underline">{emp.email}</a>} />
-        </Section>
-        <EmployeeHistorySection employeeId={emp.id} />
         <EmployeeTrainingSection employeeId={emp.id} />
       </div>
 
@@ -236,7 +196,6 @@ function EmployeesPageContent() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<EmpStatus | "all">("all");
   const [deptFilter, setDeptFilter] = useState<string>("all");
   const [companyFilter, setCompanyFilter] = useState<string>(() => searchParams.get("company") ?? "all");
   const [selectedId, setSelectedId] = useState<string | null>(() => searchParams.get("select") ?? null);
@@ -264,23 +223,27 @@ function EmployeesPageContent() {
     }
   }
 
-  const availableFilterDepts = companyFilter === "all" ? DEPARTMENTS : (companyDeptMap[companyFilter] ?? []);
+  const availableFilterDepts = useMemo(() => {
+    if (companyFilter !== "all") return companyDeptMap[companyFilter] ?? [];
+    const set = new Set<string>();
+    for (const c of companies) for (const d of c.departments ?? []) set.add(d);
+    return [...set].sort();
+  }, [companyFilter, companyDeptMap, companies]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return employees.filter((e) => {
       if (companyFilter !== "all" && e.company !== companyFilter) return false;
-      if (statusFilter !== "all" && e.status !== statusFilter) return false;
       if (deptFilter !== "all" && e.department !== deptFilter) return false;
       if (q) {
-        const hay = [e.firstName, e.lastName, e.position, e.department, e.company, e.id].join(" ").toLowerCase();
+        const hay = [e.firstName, e.lastName, e.department, e.company, e.id].join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [employees, search, companyFilter, statusFilter, deptFilter]);
+  }, [employees, search, companyFilter, deptFilter]);
 
-  const hasFilter = search || companyFilter !== "all" || statusFilter !== "all" || deptFilter !== "all";
+  const hasFilter = search || companyFilter !== "all" || deptFilter !== "all";
 
   if (loading) {
     return (
@@ -290,7 +253,7 @@ function EmployeesPageContent() {
           <div className="space-y-2.5 px-4 pt-3 pb-3">
             <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
             <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
-            <div className="flex gap-2"><div className="h-9 flex-1 animate-pulse rounded-[6px] bg-border" /><div className="h-9 flex-1 animate-pulse rounded-[6px] bg-border" /></div>
+            <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
           </div>
         </div>
         <main className="w-full px-4 py-4" aria-busy="true" aria-label="กำลังโหลด">
@@ -301,7 +264,6 @@ function EmployeesPageContent() {
                 <div className="h-14 w-14 animate-pulse rounded-full bg-border" />
                 <div className="mt-3 h-3.5 w-20 animate-pulse rounded-[3px] bg-border" />
                 <div className="mt-2 h-5 w-16 animate-pulse rounded-full bg-border" />
-                <div className="mt-1.5 h-5 w-14 animate-pulse rounded-full bg-border" />
                 <div className="mt-3 w-full border-t border-border pt-2.5"><div className="mx-auto h-3 w-14 animate-pulse rounded-[3px] bg-border" /></div>
               </div>
             ))}
@@ -335,7 +297,7 @@ function EmployeesPageContent() {
           <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md lg:static lg:z-auto lg:shrink-0">
             <div className="space-y-2.5 px-4 pt-3 pb-3">
               <div className="relative">
-                <input type="search" placeholder="ค้นหาชื่อ ตำแหน่ง ทีม บริษัท..." value={search} onChange={(e) => setSearch(e.target.value)} className="field-input pr-9" />
+                <input type="search" placeholder="ค้นหาชื่อ ทีม บริษัท..." value={search} onChange={(e) => setSearch(e.target.value)} className="field-input pr-9" />
                 {search ? (
                   <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-border text-muted hover:bg-border-strong hover:text-ink" aria-label="ล้างคำค้นหา">
                     <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
@@ -348,15 +310,10 @@ function EmployeesPageContent() {
                 <option value="all">ทุกบริษัท</option>
                 {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
               </select>
-              <div className="flex gap-2">
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as EmpStatus | "all")} aria-label="กรองตามสถานะ" className="field-input flex-1">
-                  {STATUS_FILTER_OPTS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                </select>
-                <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} aria-label="กรองตามทีม" className="field-input flex-1">
-                  <option value="all">ทุกทีม</option>
-                  {availableFilterDepts.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
-                </select>
-              </div>
+              <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} aria-label="กรองตามทีม" className="field-input w-full">
+                <option value="all">ทุกทีม</option>
+                {availableFilterDepts.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
+              </select>
             </div>
           </div>
 
@@ -366,7 +323,7 @@ function EmployeesPageContent() {
                 {filtered.length > 0 ? `${filtered.length} คน` : "ไม่พบพนักงาน"}
               </p>
               {hasFilter && (
-                <button onClick={() => { setSearch(""); setCompanyFilter("all"); setStatusFilter("all"); setDeptFilter("all"); }} className="text-[12px] text-primary-text hover:underline">
+                <button onClick={() => { setSearch(""); setCompanyFilter("all"); setDeptFilter("all"); }} className="text-[12px] text-primary-text hover:underline">
                   ล้างตัวกรอง
                 </button>
               )}

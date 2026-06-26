@@ -1,30 +1,19 @@
 import { getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { companiesRef, companyRef } from "@/lib/db";
-import { DEPT_CONFIG, type Employee } from "@/lib/employees";
+import { getDeptColor, type Employee } from "@/lib/employees";
 
 // ── Types ──────────────────────────────────────────────────────
 export type Company = {
   id: string;
   name: string;
-  shortName: string;
-  type: "จำกัด" | "มหาชน" | "จำกัด (มหาชน)";
-  taxId: string;
-  address: string;
+  type: "นิติบุคคล" | "บุคคลธรรมดา";
   phone: string;
-  email: string;
-  website: string;
-  founded: string;
-  color: string;
-  bg: string;
   departments: string[];
   logoURL?: string;
 };
 
 export type CompanyStats = {
   total: number;
-  active: number;
-  leave: number;
-  resigned: number;
   departments: { name: string; count: number; color: string; bg: string }[];
 };
 
@@ -36,16 +25,17 @@ export function getCompanyStats(companyName: string, employees: Employee[]): Com
     deptMap.set(e.department, (deptMap.get(e.department) ?? 0) + 1);
   }
   return {
-    total:    emps.length,
-    active:   emps.filter((e) => e.status === "active").length,
-    leave:    emps.filter((e) => e.status === "leave").length,
-    resigned: emps.filter((e) => e.status === "resigned").length,
+    total: emps.length,
     departments: [...deptMap.entries()].map(([name, count]) => ({
       name, count,
-      color: DEPT_CONFIG[name]?.color ?? "var(--muted)",
-      bg:    DEPT_CONFIG[name]?.bg    ?? "var(--surface)",
+      ...getDeptColor(name),
     })),
   };
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function strip<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
 }
 
 // ── Firestore CRUD ─────────────────────────────────────────────
@@ -61,12 +51,12 @@ export async function fetchCompany(id: string): Promise<Company | null> {
 }
 
 export async function createCompany(data: Omit<Company, "id">): Promise<string> {
-  const ref = await addDoc(companiesRef(), data);
+  const ref = await addDoc(companiesRef(), strip(data));
   return ref.id;
 }
 
 export async function updateCompany(id: string, data: Partial<Omit<Company, "id">>): Promise<void> {
-  await updateDoc(companyRef(id), data);
+  await updateDoc(companyRef(id), strip(data));
 }
 
 export async function deleteCompany(id: string): Promise<void> {

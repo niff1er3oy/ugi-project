@@ -14,7 +14,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "UGI — ระบบบริหารงานพนักงาน",
+  title: `${process.env.NEXT_PUBLIC_APP_NAME} — ระบบบริหารงานพนักงาน`,
   description: "จัดการข้อมูลพนักงาน เอกสารรับรอง การอบรม และความปลอดภัย",
 };
 

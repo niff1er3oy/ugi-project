@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { uploadFile } from "@/lib/upload";
-import { DEPT_CONFIG, STATUS_CONFIG, type Employee, type EmpStatus } from "@/lib/employees";
+import { getDeptColor, type Employee } from "@/lib/employees";
 import { fetchCompanies, type Company } from "@/lib/companies";
 
 export type EmployeeFormData = Omit<Employee, "id">;
@@ -140,11 +140,6 @@ export default function EmployeeForm({
     lastName:   defaultValues?.lastName   ?? "",
     company:    defaultValues?.company    ?? "",
     department: defaultValues?.department ?? "",
-    position:   defaultValues?.position   ?? "",
-    status:     defaultValues?.status     ?? "active",
-    phone:      defaultValues?.phone      ?? "",
-    email:      defaultValues?.email      ?? "",
-    startDate:  defaultValues?.startDate  ?? "",
     photoURL:   defaultValues?.photoURL,
   });
   const [uploading, setUploading] = useState(false);
@@ -184,7 +179,7 @@ export default function EmployeeForm({
 
   const currentCompany = companies.find((c) => c.name === form.company);
   const availableDepts = currentCompany?.departments ?? [];
-  const dept = DEPT_CONFIG[form.department];
+  const dept = getDeptColor(form.department);
   const initials = (form.firstName.charAt(0) || "?") + (form.lastName.charAt(0) || "");
 
   function handleCompanyChange(company: string) {
@@ -246,81 +241,17 @@ export default function EmployeeForm({
             {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
         </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="ทีม">
-            <select
-              className="field-input"
-              value={form.department}
-              onChange={(e) => set("department", e.target.value)}
-            >
-              {form.department && !availableDepts.includes(form.department) && (
-                <option value={form.department}>{form.department}</option>
-              )}
-              {availableDepts.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </Field>
-          <Field label="ตำแหน่ง" required>
-            <input
-              className="field-input"
-              value={form.position}
-              onChange={(e) => set("position", e.target.value)}
-              placeholder="ผู้จัดการ"
-              required
-            />
-          </Field>
-        </div>
-        <Field label="วันที่เริ่มงาน">
-          <input
+        <Field label="ทีม">
+          <select
             className="field-input"
-            value={form.startDate}
-            onChange={(e) => set("startDate", e.target.value)}
-            placeholder="1 ม.ค. 2560"
-          />
-        </Field>
-      </FormSection>
-
-      <FormSection label="สถานะ">
-        <div className="flex gap-2">
-          {(Object.entries(STATUS_CONFIG) as [EmpStatus, (typeof STATUS_CONFIG)[EmpStatus]][]).map(([value, cfg]) => {
-            const active = form.status === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => set("status", value)}
-                aria-pressed={active}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-[8px] border py-2.5 text-[12px] font-medium transition-colors ${
-                  active
-                    ? "border-primary bg-primary/5 text-primary-text"
-                    : "border-border text-muted hover:border-border-strong hover:text-ink"
-                }`}
-              >
-                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: cfg.dot }} />
-                {cfg.label}
-              </button>
-            );
-          })}
-        </div>
-      </FormSection>
-
-      <FormSection label="ช่องทางติดต่อ">
-        <Field label="เบอร์โทรศัพท์">
-          <input
-            type="tel"
-            className="field-input"
-            value={form.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            placeholder="081-234-5678"
-          />
-        </Field>
-        <Field label="อีเมล">
-          <input
-            type="email"
-            className="field-input"
-            value={form.email}
-            onChange={(e) => set("email", e.target.value)}
-            placeholder="name@ugi.co.th"
-          />
+            value={form.department}
+            onChange={(e) => set("department", e.target.value)}
+          >
+            {form.department && !availableDepts.includes(form.department) && (
+              <option value={form.department}>{form.department}</option>
+            )}
+            {availableDepts.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
         </Field>
       </FormSection>
 

@@ -1,16 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchEmployees, DEPT_CONFIG, type Employee } from "@/lib/employees";
-import { fetchCompanies, type Company } from "@/lib/companies";
+import { fetchEmployees, getDeptColor, type Employee } from "@/lib/employees";
 import {
-  CATEGORIES, STATUS_CONFIG,
-  type TrainingCategory, type TrainingStatus, type TrainingRecord,
+  CATEGORIES,
+  type TrainingCategory, type TrainingRecord,
 } from "@/lib/training";
 
 export type TrainingFormData = Omit<TrainingRecord, "id">;
-
-const TRAINING_STATUSES: TrainingStatus[] = ["in_progress", "completed", "cancelled"];
 
 // ── Field helpers ───────────────────────────────────────────────
 function FormSection({ label, children }: { label: string; children: React.ReactNode }) {
@@ -48,7 +45,7 @@ function ParticipantPicker({ selected, onChange }: { selected: string[]; onChang
   const filtered = employees.filter((emp) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return `${emp.firstName} ${emp.lastName} ${emp.position} ${emp.department}`.toLowerCase().includes(q);
+    return `${emp.firstName} ${emp.lastName} ${emp.department}`.toLowerCase().includes(q);
   });
 
   const toggle = (id: string) => {
@@ -63,19 +60,26 @@ function ParticipantPicker({ selected, onChange }: { selected: string[]; onChang
       {selectedEmps.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1.5">
           {selectedEmps.map((emp) => {
-            const dept = DEPT_CONFIG[emp.department];
+            const dept = getDeptColor(emp.department);
             return (
               <span
                 key={emp.id}
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium"
-                style={{ backgroundColor: dept?.bg ?? "var(--surface)", color: dept?.color ?? "var(--muted)" }}
+                className="inline-flex items-center gap-2 rounded-[6px] px-2.5 py-1.5"
+                style={{ backgroundColor: dept?.bg ?? "var(--surface)" }}
               >
-                {emp.firstName} {emp.lastName}
+                <span className="min-w-0">
+                  <span className="block text-[11px] font-semibold leading-tight" style={{ color: dept?.color ?? "var(--ink)" }}>
+                    {emp.firstName} {emp.lastName}
+                  </span>
+                  <span className="block text-[10px] leading-tight opacity-75" style={{ color: dept?.color ?? "var(--muted)" }}>
+                    {emp.company} · {emp.department}
+                  </span>
+                </span>
                 <button
                   type="button"
                   onClick={() => toggle(emp.id)}
                   aria-label={`ลบ ${emp.firstName}`}
-                  className="ml-0.5 opacity-70 hover:opacity-100"
+                  className="shrink-0 opacity-60 hover:opacity-100"
                 >
                   <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -124,7 +128,7 @@ function ParticipantPicker({ selected, onChange }: { selected: string[]; onChang
               </p>
             ) : (
               filtered.map((emp) => {
-                const dept = DEPT_CONFIG[emp.department];
+                const dept = getDeptColor(emp.department);
                 const checked = selected.includes(emp.id);
                 return (
                   <label
@@ -141,7 +145,7 @@ function ParticipantPicker({ selected, onChange }: { selected: string[]; onChang
                       <p className="text-[13px] font-medium text-ink">
                         {emp.firstName} {emp.lastName}
                       </p>
-                      <p className="text-[11px] text-muted">{emp.position}</p>
+                      <p className="text-[11px] text-muted">{emp.company} · {emp.department}</p>
                     </div>
                     <span
                       className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
@@ -172,38 +176,20 @@ export default function TrainingForm({
   onCancel: () => void;
   submitLabel?: string;
 }) {
-  const [companies, setCompanies] = useState<Company[]>([]);
   const [form, setForm] = useState<TrainingFormData>({
     title:        defaultValues?.title        ?? "",
     category:     defaultValues?.category     ?? "ความปลอดภัย",
-    status:       defaultValues?.status       ?? "in_progress",
     date:         defaultValues?.date         ?? "",
     endDate:      defaultValues?.endDate,
     hours:        defaultValues?.hours        ?? 0,
-    instructor:   defaultValues?.instructor   ?? "",
     location:     defaultValues?.location     ?? "",
-    company:      defaultValues?.company      ?? "",
-    department:   defaultValues?.department,
     participants: defaultValues?.participants ?? [],
     note:         defaultValues?.note,
   });
 
-  useEffect(() => {
-    fetchCompanies().then((cos) => {
-      setCompanies(cos);
-      if (!defaultValues?.company && cos.length > 0) {
-        setForm((f) => ({ ...f, company: f.company || cos[0].name }));
-      }
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   function set<K extends keyof TrainingFormData>(key: K, value: TrainingFormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
-
-  const currentCompany = companies.find((c) => c.name === form.company);
-  const depts = currentCompany?.departments ?? [];
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(form); }} className="space-y-7">
@@ -241,32 +227,14 @@ export default function TrainingForm({
             />
           </Field>
         </div>
-      </FormSection>
-
-      {/* สถานะ */}
-      <FormSection label="สถานะ">
-        <div className="grid grid-cols-3 gap-2">
-          {TRAINING_STATUSES.map((s) => {
-            const cfg = STATUS_CONFIG[s];
-            const active = form.status === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => set("status", s)}
-                aria-pressed={active}
-                className={`flex items-center justify-center gap-1.5 rounded-[8px] border py-2.5 text-[12px] font-medium transition-colors ${
-                  active
-                    ? "border-primary bg-primary/5 text-primary-text"
-                    : "border-border text-muted hover:border-border-strong hover:text-ink"
-                }`}
-              >
-                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: cfg.dot }} />
-                {cfg.label}
-              </button>
-            );
-          })}
-        </div>
+        <Field label="สถานที่">
+          <input
+            className="field-input"
+            value={form.location}
+            onChange={(e) => set("location", e.target.value)}
+            placeholder="เช่น ห้องประชุม A, โรงแรม XYZ"
+          />
+        </Field>
       </FormSection>
 
       {/* วันที่ */}
@@ -290,54 +258,6 @@ export default function TrainingForm({
             />
           </Field>
         </div>
-      </FormSection>
-
-      {/* วิทยากรและสถานที่ */}
-      <FormSection label="วิทยากรและสถานที่">
-        <Field label="วิทยากร / ผู้จัดอบรม">
-          <input
-            className="field-input"
-            value={form.instructor}
-            onChange={(e) => set("instructor", e.target.value)}
-            placeholder="เช่น อ.สมชาย หรือ บริษัท XYZ Training"
-          />
-        </Field>
-        <Field label="สถานที่">
-          <input
-            className="field-input"
-            value={form.location}
-            onChange={(e) => set("location", e.target.value)}
-            placeholder="เช่น ห้องประชุม A, โรงแรม XYZ"
-          />
-        </Field>
-      </FormSection>
-
-      {/* หน่วยงาน */}
-      <FormSection label="หน่วยงาน">
-        <Field label="บริษัท" required>
-          <select
-            className="field-input"
-            value={form.company}
-            onChange={(e) => set("company", e.target.value)}
-          >
-            {form.company && !companies.find((c) => c.name === form.company) && (
-              <option value={form.company}>{form.company}</option>
-            )}
-            {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
-          </select>
-        </Field>
-        {depts.length > 0 && (
-          <Field label="แผนก / ทีม">
-            <select
-              className="field-input"
-              value={form.department ?? ""}
-              onChange={(e) => set("department", e.target.value || undefined)}
-            >
-              <option value="">— ทุกแผนก —</option>
-              {depts.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </Field>
-        )}
       </FormSection>
 
       {/* ผู้เข้าร่วม */}

@@ -14,8 +14,8 @@ export default function NewEmployeePage() {
     await createNotification({
       type: "info",
       category: "ข้อมูลพนักงาน",
-      title: "เพิ่มพนักงานใหม่",
-      message: `${data.firstName} ${data.lastName} เข้าร่วมทีม${data.department} ในตำแหน่ง${data.position}`,
+      title: `เพิ่มพนักงานใหม่: ${data.firstName} ${data.lastName}`,
+      message: `${data.department} · ${data.company}`,
       href: `/employees/${id}`,
     });
     router.replace(`/employees/${id}`);

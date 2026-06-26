@@ -2,29 +2,23 @@
 
 import { useRef, useState } from "react";
 import { uploadFile } from "@/lib/upload";
-import {
-  TYPE_CONFIG, STATUS_CONFIG,
-  type WorkType, type WorkStatus, type OffsiteTask,
-} from "@/lib/offsite-tasks";
+import { type OffsiteTask } from "@/lib/offsite-tasks";
+import { type Company } from "@/lib/companies";
 
 export type OffsiteTaskFormData = Omit<OffsiteTask, "id">;
 
-const WORK_TYPES: WorkType[] = ["ซ่อมบำรุง", "ติดตั้ง", "ตรวจสอบ", "อื่นๆ"];
-const WORK_STATUSES: WorkStatus[] = ["pending", "in_progress", "completed", "cancelled"];
-const NEEDS_END = (s: WorkStatus) => s === "completed" || s === "cancelled";
+const TASK_ICON_PATH = "M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z";
 
 // ── Icon picker ─────────────────────────────────────────────────
 function IconPicker({
-  photoURL, type, uploading, onChange, onClear,
+  photoURL, uploading, onChange, onClear,
 }: {
   photoURL?: string;
-  type: WorkType;
   uploading: boolean;
   onChange: (file: File) => void;
   onClear: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const cfg = TYPE_CONFIG[type];
 
   return (
     <div className="flex flex-col items-center gap-2 pb-2">
@@ -39,12 +33,9 @@ function IconPicker({
           {photoURL ? (
             <img src={photoURL} alt="" className="h-full w-full rounded-[18px] object-cover" />
           ) : (
-            <div
-              className="flex h-full w-full items-center justify-center rounded-[18px]"
-              style={{ backgroundColor: cfg.lightBg }}
-            >
-              <svg className="h-8 w-8" fill="none" stroke={cfg.color} strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d={cfg.iconPath} />
+            <div className="flex h-full w-full items-center justify-center rounded-[18px] bg-primary-ghost">
+              <svg className="h-8 w-8" fill="none" stroke="var(--primary)" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d={TASK_ICON_PATH} />
               </svg>
             </div>
           )}
@@ -65,7 +56,6 @@ function IconPicker({
           )}
         </button>
 
-        {/* Clear button — visible only when photo is set and not uploading */}
         {photoURL && !uploading && (
           <button
             type="button"
@@ -170,33 +160,48 @@ function Field({ label, required, children }: { label: string; required?: boolea
 export default function OffsiteTaskForm({
   defaultValues,
   taskId,
-  departments = [],
+  companies = [],
   onSubmit,
   onCancel,
   submitLabel = "บันทึก",
 }: {
   defaultValues?: Partial<OffsiteTask>;
   taskId?: string;
-  departments?: string[];
+  companies?: Company[];
   onSubmit: (data: OffsiteTaskFormData) => void;
   onCancel: () => void;
   submitLabel?: string;
 }) {
+  const initCompany    = defaultValues?.company    ?? companies[0]?.name ?? "";
+  const initDepartment = defaultValues?.department ?? companies[0]?.departments[0] ?? "";
+
   const [form, setForm] = useState<OffsiteTaskFormData>({
     title:      defaultValues?.title      ?? "",
-    type:       defaultValues?.type       ?? "ซ่อมบำรุง",
-    customType: defaultValues?.customType ?? "",
-    status:     defaultValues?.status     ?? "pending",
+    type:       defaultValues?.type       ?? "",
     startDate:  defaultValues?.startDate  ?? "",
     startTime:  defaultValues?.startTime  ?? "",
     endDate:    defaultValues?.endDate,
     endTime:    defaultValues?.endTime,
-    department: defaultValues?.department ?? departments[0] ?? "",
+    company:    initCompany,
+    department: initDepartment,
     location:   defaultValues?.location   ?? "",
     note:       defaultValues?.note       ?? "",
     workPhotos: defaultValues?.workPhotos ?? [],
     photoURL:   defaultValues?.photoURL,
   });
+
+  const currentCompany   = companies.find((c) => c.name === form.company);
+  const availableDepts   = currentCompany?.departments ?? companies.flatMap((c) => c.departments);
+
+  function handleCompanyChange(name: string) {
+    const co    = companies.find((c) => c.name === name);
+    const depts = co?.departments ?? [];
+    setForm((f) => ({
+      ...f,
+      company:    name,
+      department: depts.includes(f.department) ? f.department : (depts[0] ?? ""),
+    }));
+  }
 
   const [iconUploading, setIconUploading] = useState(false);
   const [photoUploadingIdx, setPhotoUploadingIdx] = useState<number | null>(null);
@@ -205,15 +210,6 @@ export default function OffsiteTaskForm({
 
   function set<K extends keyof OffsiteTaskFormData>(key: K, value: OffsiteTaskFormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
-  }
-
-  function handleStatusChange(status: WorkStatus) {
-    setForm((f) => ({
-      ...f,
-      status,
-      endDate: NEEDS_END(status) ? f.endDate : undefined,
-      endTime: NEEDS_END(status) ? f.endTime : undefined,
-    }));
   }
 
   async function handleIconChange(file: File) {
@@ -251,15 +247,12 @@ export default function OffsiteTaskForm({
     setForm((f) => ({ ...f, workPhotos: (f.workPhotos ?? []).filter((_, idx) => idx !== i) }));
   }
 
-  const showEnd = NEEDS_END(form.status);
-
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(form); }} className="space-y-7">
 
       {/* Icon picker */}
       <IconPicker
         photoURL={form.photoURL}
-        type={form.type}
         uploading={iconUploading}
         onChange={handleIconChange}
         onClear={() => set("photoURL", undefined)}
@@ -276,35 +269,34 @@ export default function OffsiteTaskForm({
             required
           />
         </Field>
+        <Field label="บริษัท">
+          {companies.length === 0 ? (
+            <div className="field-input text-muted">ยังไม่มีบริษัทในระบบ — เพิ่มบริษัทก่อน</div>
+          ) : (
+            <select className="field-input" value={form.company ?? ""} onChange={(e) => handleCompanyChange(e.target.value)}>
+              {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+            </select>
+          )}
+        </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="ประเภทงาน">
-            <select className="field-input" value={form.type}
-              onChange={(e) => set("type", e.target.value as WorkType)}>
-              {WORK_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
+            <input
+              className="field-input"
+              value={form.type}
+              onChange={(e) => set("type", e.target.value)}
+              placeholder="เช่น ซ่อมบำรุง, ติดตั้ง..."
+            />
           </Field>
           <Field label="ทีม">
-            {departments.length === 0 ? (
-              <div className="field-input text-muted">ยังไม่มีทีมในระบบ — เพิ่มทีมในหน้าบริษัทก่อน</div>
+            {availableDepts.length === 0 ? (
+              <div className="field-input text-muted">ไม่มีทีม</div>
             ) : (
-              <select className="field-input" value={form.department}
-                onChange={(e) => set("department", e.target.value)}>
-                {departments.map((d) => <option key={d} value={d}>{d}</option>)}
+              <select className="field-input" value={form.department} onChange={(e) => set("department", e.target.value)}>
+                {availableDepts.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             )}
           </Field>
         </div>
-        {form.type === "อื่นๆ" && (
-          <Field label="ระบุประเภท" required>
-            <input
-              className="field-input"
-              value={form.customType ?? ""}
-              onChange={(e) => set("customType", e.target.value || undefined)}
-              placeholder="เช่น ทำความสะอาด, งานขนย้าย..."
-              required
-            />
-          </Field>
-        )}
         <Field label="สถานที่">
           <input
             className="field-input"
@@ -315,74 +307,46 @@ export default function OffsiteTaskForm({
         </Field>
       </FormSection>
 
-      {/* สถานะ */}
-      <FormSection label="สถานะงาน">
-        <div className="grid grid-cols-2 gap-2">
-          {WORK_STATUSES.map((s) => {
-            const cfg = STATUS_CONFIG[s];
-            const active = form.status === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => handleStatusChange(s)}
-                aria-pressed={active}
-                className={`flex items-center justify-center gap-1.5 rounded-[8px] border py-2.5 text-[12px] font-medium transition-colors ${
-                  active
-                    ? "border-primary bg-primary/5 text-primary-text"
-                    : "border-border text-muted hover:border-border-strong hover:text-ink"
-                }`}
-              >
-                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: cfg.dot }} />
-                {cfg.label}
-              </button>
-            );
-          })}
-        </div>
-      </FormSection>
-
       {/* วันเวลา */}
       <FormSection label="วันเวลา">
         <div className="grid grid-cols-2 gap-3">
           <Field label="วันที่เริ่ม" required>
             <input
+              type="date"
               className="field-input"
               value={form.startDate}
               onChange={(e) => set("startDate", e.target.value)}
-              placeholder="12 มิ.ย. 2568"
               required
             />
           </Field>
           <Field label="เวลาเริ่ม" required>
             <input
+              type="time"
               className="field-input"
               value={form.startTime}
               onChange={(e) => set("startTime", e.target.value)}
-              placeholder="09:00"
               required
             />
           </Field>
         </div>
-        {showEnd && (
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="วันที่สิ้นสุด">
-              <input
-                className="field-input"
-                value={form.endDate ?? ""}
-                onChange={(e) => set("endDate", e.target.value || undefined)}
-                placeholder="12 มิ.ย. 2568"
-              />
-            </Field>
-            <Field label="เวลาสิ้นสุด">
-              <input
-                className="field-input"
-                value={form.endTime ?? ""}
-                onChange={(e) => set("endTime", e.target.value || undefined)}
-                placeholder="11:30"
-              />
-            </Field>
-          </div>
-        )}
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="วันที่สิ้นสุด">
+            <input
+              type="date"
+              className="field-input"
+              value={form.endDate ?? ""}
+              onChange={(e) => set("endDate", e.target.value || undefined)}
+            />
+          </Field>
+          <Field label="เวลาสิ้นสุด">
+            <input
+              type="time"
+              className="field-input"
+              value={form.endTime ?? ""}
+              onChange={(e) => set("endTime", e.target.value || undefined)}
+            />
+          </Field>
+        </div>
       </FormSection>
 
       {/* รายละเอียดงาน */}

@@ -12,8 +12,7 @@ import Navbar from "@/components/navbar";
 import { DepartmentChip } from "@/components/department-chip";
 import {
   fetchTasks,
-  TYPE_CONFIG, STATUS_CONFIG,
-  type OffsiteTask, type WorkType,
+  type OffsiteTask,
 } from "@/lib/offsite-tasks";
 
 // ── Thai date parsing ──────────────────────────────────────────
@@ -50,7 +49,7 @@ function taskMatchesPeriod(task: OffsiteTask, month: number, yearBE: number): bo
 }
 
 // ── Sub-components ─────────────────────────────────────────────
-function DonutChart({ segments, total }: { segments: { label: WorkType; count: number; color: string }[]; total: number }) {
+function DonutChart({ segments, total }: { segments: { label: string; count: number; color: string }[]; total: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef  = useRef<Chart<"doughnut"> | null>(null);
 
@@ -136,35 +135,28 @@ function DonutChart({ segments, total }: { segments: { label: WorkType; count: n
 }
 
 function TaskCard({ task, index }: { task: OffsiteTask; index: number }) {
-  const status = STATUS_CONFIG[task.status];
-  const type   = TYPE_CONFIG[task.type];
   return (
     <div
       className="animate-enter-stagger cursor-pointer rounded-[12px] border border-border bg-background transition-shadow duration-150 hover:shadow-sm"
       style={{ "--i": index } as React.CSSProperties}
     >
       <div className="flex items-start gap-3 px-4 pt-4">
-        <div
-          className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]"
-          style={{ backgroundColor: type.lightBg }}
-        >
-          <svg className="h-5 w-5" fill="none" stroke={type.color} strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d={type.iconPath} />
-          </svg>
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-[14px] font-semibold leading-snug text-ink">{task.title}</p>
-            <span className={`mt-0.5 inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${status.bg} ${status.text}`}>
-              {status.label}
-            </span>
+        {task.photoURL ? (
+          <div className="mt-0.5 h-10 w-10 shrink-0 overflow-hidden rounded-[10px]">
+            <img src={task.photoURL} alt="" className="h-full w-full object-cover" />
           </div>
+        ) : (
+          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-primary-ghost">
+            <svg className="h-5 w-5" fill="none" stroke="var(--primary)" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
+            </svg>
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-[14px] font-semibold leading-snug text-ink">{task.title}</p>
           <div className="mt-1 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: type.color }}>
-              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: type.color }} />
-              {task.type}
-            </span>
-            <span className="text-border-strong">·</span>
+            {task.type && <span className="text-[11px] text-muted">{task.type}</span>}
+            {task.type && <span className="text-border-strong">·</span>}
             <span className="font-mono text-[11px] text-muted">{task.id.slice(0, 8)}</span>
           </div>
         </div>
@@ -194,12 +186,11 @@ function TaskCard({ task, index }: { task: OffsiteTask; index: number }) {
 
 // ── CSV export ─────────────────────────────────────────────────
 function exportCSV(tasks: OffsiteTask[], monthIdx: number, year: number) {
-  const headers = ["รหัส", "ชื่องาน", "ประเภท", "สถานะ", "แผนก", "สถานที่", "วันที่", "เวลา", "หมายเหตุ"];
+  const headers = ["รหัส", "ชื่องาน", "ประเภท", "ทีม", "สถานที่", "วันที่", "เวลา", "หมายเหตุ"];
   const rows = tasks.map((t) => [
     t.id,
     t.title,
     t.type,
-    STATUS_CONFIG[t.status].label,
     t.department,
     t.location,
     t.startDate,
@@ -269,18 +260,17 @@ export default function ReportsPage() {
   const displayTasks = usePeriod ? periodTasks : tasks;
 
   const total      = displayTasks.length;
-  const completed  = displayTasks.filter((t) => t.status === "completed").length;
-  const inProgress = displayTasks.filter((t) => t.status === "in_progress").length;
-  const pending    = displayTasks.filter((t) => t.status === "pending").length;
-  const cancelled  = displayTasks.filter((t) => t.status === "cancelled").length;
+  const withPhotos = displayTasks.filter((t) => (t.workPhotos ?? []).length > 0).length;
+  const withEnd    = displayTasks.filter((t) => !!t.endDate).length;
+  const deptCount  = new Set(displayTasks.map((t) => t.department)).size;
 
-  const typeBreakdown: { label: WorkType; count: number; color: string }[] = (
-    ["ซ่อมบำรุง", "ติดตั้ง", "ตรวจสอบ", "อื่นๆ"] as WorkType[]
-  ).map((type) => ({
-    label: type,
-    count: displayTasks.filter((t) => t.type === type).length,
-    color: TYPE_CONFIG[type].color,
-  }));
+  const TYPE_COLORS = ["var(--primary)", "var(--accent)", "var(--success)", "var(--error)", "var(--muted)"];
+  const typeCount: Record<string, number> = {};
+  displayTasks.forEach((t) => { const k = t.type || "ไม่ระบุ"; typeCount[k] = (typeCount[k] ?? 0) + 1; });
+  const typeBreakdown = Object.entries(typeCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([label, count], i) => ({ label, count, color: TYPE_COLORS[i % TYPE_COLORS.length] }));
 
   const recentTasks = [...periodTasks].sort((a, b) => taskSortKey(b) - taskSortKey(a));
 
@@ -343,10 +333,7 @@ export default function ReportsPage() {
                 <div className="flex items-start gap-3 px-4 pt-4">
                   <div className="mt-0.5 h-10 w-10 shrink-0 animate-pulse rounded-[10px] bg-border" />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="h-[38px] flex-1 animate-pulse rounded-[3px] bg-border" />
-                      <div className="mt-0.5 h-5 w-24 shrink-0 animate-pulse rounded-full bg-border" />
-                    </div>
+                    <div className="h-[38px] flex-1 animate-pulse rounded-[3px] bg-border" />
                     <div className="mt-2 flex gap-2">
                       <div className="h-3.5 w-20 animate-pulse rounded-[3px] bg-border" />
                     </div>
@@ -443,9 +430,9 @@ export default function ReportsPage() {
         <div key={`${month}-${year}`} className="grid grid-cols-2 gap-3 animate-enter" style={{ animationDelay: "50ms" }}>
           {[
             { label: "การปฏิบัติงานทั้งหมด", value: total,      unit: "งาน", color: "text-ink",          dot: "bg-border-strong" },
-            { label: "งานที่เสร็จแล้ว",      value: completed,  unit: "งาน", color: "text-success-text", dot: "bg-success"        },
-            { label: "กำลังดำเนินการ",        value: inProgress + pending, unit: "งาน", color: "text-primary-text", dot: "bg-primary" },
-            { label: "ถูกยกเลิก",             value: cancelled,  unit: "งาน", color: "text-error",        dot: "bg-error"          },
+            { label: "มีรูปภาพการปฏิบัติงาน", value: withPhotos, unit: "งาน", color: "text-primary-text", dot: "bg-primary"        },
+            { label: "บันทึกเวลาสิ้นสุด",     value: withEnd,    unit: "งาน", color: "text-success-text", dot: "bg-success"        },
+            { label: "จำนวนทีมที่ปฏิบัติงาน", value: deptCount,  unit: "ทีม", color: "text-ink",          dot: "bg-border-strong"  },
           ].map((kpi, i) => (
             <div
               key={kpi.label}

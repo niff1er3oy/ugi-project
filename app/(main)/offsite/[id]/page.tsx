@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/navbar";
 import { Section, InfoRow } from "@/components/detail-section";
 import { DepartmentChip } from "@/components/department-chip";
-import { fetchTask, deleteTask, STATUS_CONFIG, TYPE_CONFIG, type OffsiteTask } from "@/lib/offsite-tasks";
+import { fetchTask, deleteTask, formatDate, formatTime, type OffsiteTask } from "@/lib/offsite-tasks";
 
 export default function OffsiteDetailPage() {
   const router = useRouter();
@@ -91,9 +91,6 @@ export default function OffsiteDetailPage() {
     );
   }
 
-  const status = STATUS_CONFIG[task.status];
-  const type = TYPE_CONFIG[task.type];
-
   return (
     <>
       <Navbar title="รายละเอียดงาน" right={editButton} />
@@ -108,12 +105,9 @@ export default function OffsiteDetailPage() {
                 <img src={task.photoURL} alt="" className="h-full w-full object-cover" />
               </div>
             ) : (
-              <div
-                className="mt-0.5 flex h-14 w-14 shrink-0 items-center justify-center rounded-[14px]"
-                style={{ backgroundColor: type.lightBg }}
-              >
-                <svg className="h-7 w-7" fill="none" stroke={type.color} strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d={type.iconPath} />
+              <div className="mt-0.5 flex h-14 w-14 shrink-0 items-center justify-center rounded-[14px] bg-primary-ghost">
+                <svg className="h-7 w-7" fill="none" stroke="var(--primary)" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
                 </svg>
               </div>
             )}
@@ -122,14 +116,11 @@ export default function OffsiteDetailPage() {
                 {task.title}
               </h2>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${status.bg} ${status.text}`}>
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: status.dot }} />
-                  {status.label}
-                </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: type.color }}>
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: type.color }} />
-                  {task.type}
-                </span>
+                {task.type && (
+                  <span className="inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-[11px] font-medium text-muted">
+                    {task.type}
+                  </span>
+                )}
                 <span className="font-mono text-[11px] text-muted">{task.id}</span>
               </div>
             </div>
@@ -140,15 +131,13 @@ export default function OffsiteDetailPage() {
 
           {/* ── ข้อมูลงาน ────────────────────────────────────── */}
           <Section label="ข้อมูลงาน">
-            <InfoRow label="เริ่มต้น"    value={`${task.startDate} · ${task.startTime}`} />
+            <InfoRow label="เริ่มต้น"    value={`${formatDate(task.startDate)} · ${formatTime(task.startTime)}`} />
             {task.endDate && (
-              <InfoRow label="สิ้นสุด"  value={`${task.endDate} · ${task.endTime}`} />
+              <InfoRow label="สิ้นสุด"  value={`${formatDate(task.endDate)} · ${formatTime(task.endTime ?? "")}`} />
             )}
             <InfoRow label="สถานที่"     value={task.location} />
             <InfoRow label="ทีม"         value={<DepartmentChip name={task.department} />} />
-            <InfoRow label="ประเภทงาน"   value={
-              <span className="text-[12px] font-medium" style={{ color: TYPE_CONFIG[task.type].color }}>{task.type}</span>
-            } />
+            {task.type && <InfoRow label="ประเภทงาน" value={task.type} />}
             <InfoRow label="รหัสงาน"     value={<span className="font-mono text-[12px]">{task.id}</span>} />
           </Section>
 

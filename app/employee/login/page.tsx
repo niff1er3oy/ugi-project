@@ -57,7 +57,7 @@ export default function EmployeeLoginPage() {
       <aside className="hidden lg:flex lg:w-[420px] xl:w-[480px] flex-col flex-shrink-0 bg-primary select-none">
         <div className="px-12 pt-14">
           <span className="text-white text-[34px] font-bold tracking-[-0.03em] leading-none">
-            UGI
+            {process.env.NEXT_PUBLIC_APP_NAME}
           </span>
         </div>
         <div className="flex-1 flex flex-col justify-center px-12">
@@ -97,7 +97,7 @@ export default function EmployeeLoginPage() {
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-12 bg-background">
         <div className="w-full max-w-[400px] animate-enter">
           <div className="lg:hidden mb-12">
-            <span className="text-primary-text text-[32px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+            <span className="text-primary-text text-[32px] font-bold tracking-[-0.03em] leading-none">{process.env.NEXT_PUBLIC_APP_NAME}</span>
           </div>
           <p className="text-[12px] font-medium text-muted mb-2">พอร์ทัลพนักงาน</p>
           <h1 className="text-[26px] font-semibold text-ink tracking-[-0.01em] leading-[1.2] mb-9" style={{ textWrap: "balance" } as React.CSSProperties}>เข้าสู่ระบบ</h1>

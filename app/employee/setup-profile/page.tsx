@@ -10,10 +10,7 @@ import { companyRef } from "@/lib/db";
 type VerifiedCompany = {
   id: string;
   name: string;
-  shortName: string;
   type: string;
-  color: string;
-  bg: string;
   logoURL?: string;
   departments: string[];
 };
@@ -34,14 +31,12 @@ export default function EmployeeSetupProfilePage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
-  const [startDate, setStartDate] = useState("");
 
   // ── Step 2 state ──────────────────────────────────
   const [companyIdInput, setCompanyIdInput] = useState("");
   const [verifiedCompany, setVerifiedCompany] = useState<VerifiedCompany | null>(null);
   const [verifyError, setVerifyError] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const [position, setPosition] = useState("");
   const [department, setDepartment] = useState("");
   const [step2Error, setStep2Error] = useState("");
   const [step2Loading, setStep2Loading] = useState(false);
@@ -87,10 +82,7 @@ export default function EmployeeSetupProfilePage() {
       setVerifiedCompany({
         id: snap.id,
         name: data.name,
-        shortName: data.shortName,
         type: data.type,
-        color: data.color,
-        bg: data.bg,
         logoURL: data.logoURL,
         departments: data.departments ?? [],
       });
@@ -105,7 +97,7 @@ export default function EmployeeSetupProfilePage() {
     e.preventDefault();
     if (!user || !verifiedCompany) return;
     setStep2Error("");
-    if (!department.trim()) { setStep2Error("กรุณาระบุแผนก / ทีม"); return; }
+    if (!department.trim()) { setStep2Error("กรุณาระบุทีม"); return; }
     setStep2Loading(true);
     try {
       await setDoc(doc(db, "users", user.uid), {
@@ -113,13 +105,10 @@ export default function EmployeeSetupProfilePage() {
         employeeId: user.uid,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        position: position.trim(),
         department: department.trim(),
         phone: phone.trim(),
-        startDate,
         company: verifiedCompany.name,
         companyId: verifiedCompany.id,
-        status: "active",
         email: user.email,
         photoURL: user.photoURL ?? null,
         createdAt: serverTimestamp(),
@@ -166,7 +155,7 @@ export default function EmployeeSetupProfilePage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-start px-6 py-12 overflow-y-auto">
       <div className="w-full max-w-sm mx-auto animate-enter">
-        <span className="text-primary-text text-[28px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+        <span className="text-primary-text text-[28px] font-bold tracking-[-0.03em] leading-none">{process.env.NEXT_PUBLIC_APP_NAME}</span>
 
         {/* User identity */}
         <div className="mt-8 mb-6 flex items-center gap-4">
@@ -233,23 +222,13 @@ export default function EmployeeSetupProfilePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-[7px]">
-                <label htmlFor="phone" className="text-[13.5px] font-medium text-ink leading-none">เบอร์โทร</label>
-                <input
-                  id="phone" type="tel" autoComplete="tel" required
-                  value={phone} onChange={(e) => setPhone(e.target.value)}
-                  className="field-input" style={{ padding: "10px 14px", fontSize: "15px" }} placeholder="0812345678"
-                />
-              </div>
-              <div className="flex flex-col gap-[7px]">
-                <label htmlFor="startDate" className="text-[13.5px] font-medium text-ink leading-none">วันที่เริ่มงาน</label>
-                <input
-                  id="startDate" type="date" required
-                  value={startDate} onChange={(e) => setStartDate(e.target.value)}
-                  className="field-input" style={{ padding: "10px 14px", fontSize: "15px" }}
-                />
-              </div>
+            <div className="flex flex-col gap-[7px]">
+              <label htmlFor="phone" className="text-[13.5px] font-medium text-ink leading-none">เบอร์โทร</label>
+              <input
+                id="phone" type="tel" autoComplete="tel" required
+                value={phone} onChange={(e) => setPhone(e.target.value)}
+                className="field-input" style={{ padding: "10px 14px", fontSize: "15px" }} placeholder="0812345678"
+              />
             </div>
 
             <button
@@ -305,15 +284,14 @@ export default function EmployeeSetupProfilePage() {
             ) : (
               /* Verified company card */
               <div className="flex items-center gap-3 rounded-[10px] border border-success/40 bg-success-pale px-4 py-3">
-                <div
-                  className="h-10 w-10 rounded-[7px] flex items-center justify-center shrink-0 overflow-hidden"
-                  style={{ background: verifiedCompany.color }}
-                >
+                <div className="h-10 w-10 rounded-[7px] flex items-center justify-center shrink-0 overflow-hidden bg-primary">
                   {verifiedCompany.logoURL ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={verifiedCompany.logoURL} alt="" className="h-full w-full object-contain p-1" />
                   ) : (
-                    <span className="text-white text-[11px] font-bold leading-none text-center">{verifiedCompany.shortName}</span>
+                    <span className="text-white text-[11px] font-bold leading-none text-center">
+                      {verifiedCompany.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("")}
+                    </span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -334,17 +312,7 @@ export default function EmployeeSetupProfilePage() {
             {verifiedCompany && (
               <>
                 <div className="flex flex-col gap-[7px]">
-                  <label htmlFor="position" className="text-[13.5px] font-medium text-ink leading-none">ตำแหน่งหน้าที่</label>
-                  <input
-                    id="position" type="text" required
-                    value={position} onChange={(e) => setPosition(e.target.value)}
-                    disabled={step2Loading} className="field-input"
-                    style={{ padding: "10px 14px", fontSize: "15px" }} placeholder="เช่น พนักงานฝ่ายผลิต"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-[7px]">
-                  <label htmlFor="department" className="text-[13.5px] font-medium text-ink leading-none">แผนก / ทีม</label>
+                  <label htmlFor="department" className="text-[13.5px] font-medium text-ink leading-none">ทีม</label>
                   {hasDepts && (
                     <div className="flex flex-wrap gap-2">
                       {verifiedCompany.departments.map((d) => (
@@ -369,7 +337,7 @@ export default function EmployeeSetupProfilePage() {
                     value={department} onChange={(e) => setDepartment(e.target.value)}
                     disabled={step2Loading} className="field-input"
                     style={{ padding: "10px 14px", fontSize: "15px" }}
-                    placeholder={hasDepts ? "หรือพิมพ์ชื่อแผนก / ทีม" : "พิมพ์ชื่อแผนก / ทีม"}
+                    placeholder={hasDepts ? "หรือพิมพ์ชื่อทีม" : "พิมพ์ชื่อทีม"}
                   />
                 </div>
 

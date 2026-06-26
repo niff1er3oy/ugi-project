@@ -91,7 +91,7 @@ export default function SetupProfilePage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm animate-enter">
-        <span className="text-primary-text text-[28px] font-bold tracking-[-0.03em] leading-none">UGI</span>
+        <span className="text-primary-text text-[28px] font-bold tracking-[-0.03em] leading-none">{process.env.NEXT_PUBLIC_APP_NAME}</span>
 
         <div className="mt-8 mb-8 flex items-center gap-4">
           <div

@@ -4,14 +4,12 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import { Section, InfoRow } from "@/components/detail-section";
-import { fetchEmployee, deleteEmployee, DEPT_CONFIG, STATUS_CONFIG, type Employee } from "@/lib/employees";
-import EmployeeHistorySection from "@/components/employee-history";
+import { fetchEmployee, deleteEmployee, getDeptColor, type Employee } from "@/lib/employees";
 import EmployeeTrainingSection from "@/components/employee-training-section";
 
 // ── Sub-components ─────────────────────────────────────────────
 function Avatar({ emp, size = 80 }: { emp: Employee; size?: number }) {
-  const dept = DEPT_CONFIG[emp.department];
-  const status = STATUS_CONFIG[emp.status];
+  const dept = getDeptColor(emp.department);
   const initials = emp.firstName.charAt(0) + emp.lastName.charAt(0);
 
   return (
@@ -34,14 +32,6 @@ function Avatar({ emp, size = 80 }: { emp: Employee; size?: number }) {
           {initials}
         </div>
       )}
-      <span
-        className="absolute rounded-full border-2 border-background"
-        style={{
-          width: size * 0.18, height: size * 0.18,
-          bottom: size * 0.03, right: size * 0.03,
-          backgroundColor: status.dot,
-        }}
-      />
     </div>
   );
 }
@@ -86,18 +76,12 @@ export default function EmployeeDetailPage() {
           <div className="mb-6 mt-4 flex flex-col items-center text-center" aria-hidden="true">
             <div className="h-[88px] w-[88px] animate-pulse rounded-full bg-border" />
             <div className="mt-4 h-5 w-32 animate-pulse rounded-[3px] bg-border" />
-            <div className="mt-0.5 h-3.5 w-24 animate-pulse rounded-[3px] bg-border" />
             <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
               <div className="h-6 w-24 animate-pulse rounded-full bg-border" />
-              <div className="h-6 w-20 animate-pulse rounded-full bg-border" />
-            </div>
-            <div className="mt-5 flex gap-3">
-              <div className="h-9 w-16 animate-pulse rounded-[8px] bg-border" />
-              <div className="h-9 w-20 animate-pulse rounded-[8px] bg-border" />
             </div>
           </div>
           <div className="space-y-5" aria-hidden="true">
-            {[5, 2].map((rows, i) => (
+            {[3].map((rows, i) => (
               <div key={i}>
                 <div className="mb-2 h-4 w-24 animate-pulse rounded-[3px] bg-border" />
                 <div className="overflow-hidden rounded-[12px] border border-border bg-background divide-y divide-border">
@@ -133,8 +117,7 @@ export default function EmployeeDetailPage() {
     );
   }
 
-  const dept = DEPT_CONFIG[emp.department];
-  const status = STATUS_CONFIG[emp.status];
+  const dept = getDeptColor(emp.department);
 
   return (
     <>
@@ -149,7 +132,6 @@ export default function EmployeeDetailPage() {
           <h2 className="mt-4 text-[20px] font-semibold tracking-[-0.01em] text-ink">
             {emp.firstName} {emp.lastName}
           </h2>
-          <p className="mt-0.5 text-[13px] text-muted">{emp.position}</p>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <span
@@ -158,37 +140,8 @@ export default function EmployeeDetailPage() {
             >
               {emp.department}
             </span>
-            <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${status.bg} ${status.text}`}>
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: status.dot }} />
-              {status.label}
-            </span>
           </div>
 
-          {/* Quick contact */}
-          <div className="mt-5 flex gap-3">
-            {emp.phone && (
-              <a
-                href={`tel:${emp.phone}`}
-                className="flex items-center gap-2 rounded-[8px] border border-border bg-background px-4 py-2 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-95"
-              >
-                <svg className="h-4 w-4 text-primary-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 6.75Z" />
-                </svg>
-                โทร
-              </a>
-            )}
-            {emp.email && (
-              <a
-                href={`mailto:${emp.email}`}
-                className="flex items-center gap-2 rounded-[8px] border border-border bg-background px-4 py-2 text-[13px] font-medium text-ink transition-colors hover:bg-surface active:scale-95"
-              >
-                <svg className="h-4 w-4 text-primary-text" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                </svg>
-                อีเมล
-              </a>
-            )}
-          </div>
         </div>
 
         <div className="space-y-5">
@@ -207,26 +160,7 @@ export default function EmployeeDetailPage() {
                 {emp.department}
               </span>
             } />
-            <InfoRow label="ตำแหน่ง"     value={emp.position} />
-            <InfoRow label="วันที่เริ่มงาน" value={emp.startDate} />
           </Section>
-
-          {/* ── ช่องทางติดต่อ ──────────────────────────────── */}
-          <Section label="ช่องทางติดต่อ">
-            <InfoRow label="เบอร์โทรศัพท์" value={
-              <a href={`tel:${emp.phone}`} className="text-primary-text hover:underline">
-                {emp.phone}
-              </a>
-            } />
-            <InfoRow label="อีเมล" value={
-              <a href={`mailto:${emp.email}`} className="break-all text-primary-text hover:underline">
-                {emp.email}
-              </a>
-            } />
-          </Section>
-
-          {/* ── ประวัติพนักงาน ──────────────────────────────── */}
-          <EmployeeHistorySection employeeId={emp.id} />
 
           {/* ── ประวัติการอบรม ──────────────────────────────── */}
           <EmployeeTrainingSection employeeId={emp.id} />

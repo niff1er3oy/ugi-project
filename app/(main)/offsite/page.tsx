@@ -8,15 +8,17 @@ import { Section, InfoRow } from "@/components/detail-section";
 import { DepartmentChip } from "@/components/department-chip";
 import {
   fetchTasks, createTask, updateTask, deleteTask,
-  STATUS_CONFIG, TYPE_CONFIG, STATUS_FILTER_OPTIONS, TYPE_FILTER_OPTIONS,
-  type WorkType, type WorkStatus, type OffsiteTask,
+  formatDate, formatTime,
+  type OffsiteTask,
 } from "@/lib/offsite-tasks";
-import { fetchAllDepartments } from "@/lib/companies";
+import { createNotification } from "@/lib/notifications";
+import { fetchCompanies, type Company } from "@/lib/companies";
 import OffsiteTaskForm, { type OffsiteTaskFormData } from "@/components/offsite-task-form";
 
+const TASK_ICON_PATH = "M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z";
+
 // ── Sub-components ─────────────────────────────────────────────
-function TaskTypeIcon({ type, photoURL, size = 40 }: { type: WorkType; photoURL?: string; size?: number }) {
-  const cfg = TYPE_CONFIG[type];
+function TaskTypeIcon({ photoURL, size = 40 }: { photoURL?: string; size?: number }) {
   const radius = size >= 48 ? "rounded-[14px]" : "rounded-[10px]";
   if (photoURL) {
     return (
@@ -26,18 +28,15 @@ function TaskTypeIcon({ type, photoURL, size = 40 }: { type: WorkType; photoURL?
     );
   }
   return (
-    <div className={`shrink-0 flex items-center justify-center ${radius}`} style={{ width: size, height: size, backgroundColor: cfg.lightBg }}>
-      <svg className="h-5 w-5" fill="none" stroke={cfg.color} strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" d={cfg.iconPath} />
+    <div className={`shrink-0 flex items-center justify-center ${radius} bg-primary-ghost`} style={{ width: size, height: size }}>
+      <svg className="h-5 w-5" fill="none" stroke="var(--primary)" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d={TASK_ICON_PATH} />
       </svg>
     </div>
   );
 }
 
 function TaskCard({ task, index, onSelect }: { task: OffsiteTask; index: number; onSelect: (id: string) => void }) {
-  const status = STATUS_CONFIG[task.status];
-  const type = TYPE_CONFIG[task.type];
-
   return (
     <Link
       href={`/offsite/${task.id}`}
@@ -46,20 +45,14 @@ function TaskCard({ task, index, onSelect }: { task: OffsiteTask; index: number;
       style={{ "--i": index } as React.CSSProperties}
     >
       <div className="flex items-start gap-3 px-4 pt-4">
-        <TaskTypeIcon type={task.type} photoURL={task.photoURL} />
+        <TaskTypeIcon photoURL={task.photoURL} />
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-[14px] font-semibold text-ink leading-snug">{task.title}</p>
-            <span className={`mt-0.5 shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${status.bg} ${status.text}`}>
-              {status.label}
-            </span>
-          </div>
+          <p className="text-[14px] font-semibold text-ink leading-snug">{task.title}</p>
           <div className="mt-1 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: type.color }}>
-              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: type.color }} />
-              {task.type}
-            </span>
-            <span className="text-border-strong">·</span>
+            {task.type && (
+              <span className="text-[11px] text-muted">{task.type}</span>
+            )}
+            {task.type && <span className="text-border-strong">·</span>}
             <span className="text-[11px] text-muted">{task.id}</span>
           </div>
         </div>
@@ -72,7 +65,7 @@ function TaskCard({ task, index, onSelect }: { task: OffsiteTask; index: number;
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3">
         <span className="flex items-center gap-1.5 text-[12px] text-muted">
           <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-          {task.startDate} · {task.startTime}
+          {formatDate(task.startDate)} · {formatTime(task.startTime)}
         </span>
         <span className="flex items-center gap-1.5 text-[12px] text-muted">
           <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
@@ -86,8 +79,6 @@ function TaskCard({ task, index, onSelect }: { task: OffsiteTask; index: number;
 
 // ── Detail panel ───────────────────────────────────────────────
 function OffsiteDetailPanel({ task, onClose, onEdit, onDeleted }: { task: OffsiteTask; onClose: () => void; onEdit: () => void; onDeleted: (id: string) => void }) {
-  const status = STATUS_CONFIG[task.status];
-  const type = TYPE_CONFIG[task.type];
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   async function handleDelete() {
@@ -97,23 +88,19 @@ function OffsiteDetailPanel({ task, onClose, onEdit, onDeleted }: { task: Offsit
 
   return (
     <div className="px-6 py-6 animate-enter">
-      <div className="mb-5 flex items-center justify-between">
-        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${status.bg} ${status.text}`}>
-          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: status.dot }} />
-          {status.label}
-        </span>
+      <div className="mb-5 flex items-center justify-end">
         <button onClick={onClose} aria-label="ปิด" className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
         </button>
       </div>
 
       <div className="mb-6 flex gap-4">
-        <TaskTypeIcon type={task.type} size={48} />
+        <TaskTypeIcon photoURL={task.photoURL} size={48} />
         <div className="min-w-0">
           <h2 className="text-[17px] font-semibold text-ink leading-snug">{task.title}</h2>
           <div className="mt-1 flex items-center gap-2">
-            <span className="text-[12px] font-medium" style={{ color: type.color }}>{task.type}</span>
-            <span className="text-border-strong">·</span>
+            {task.type && <span className="text-[12px] text-muted">{task.type}</span>}
+            {task.type && <span className="text-border-strong">·</span>}
             <span className="font-mono text-[11px] text-muted">{task.id}</span>
           </div>
         </div>
@@ -121,11 +108,11 @@ function OffsiteDetailPanel({ task, onClose, onEdit, onDeleted }: { task: Offsit
 
       <div className="space-y-5">
         <Section label="ข้อมูลงาน">
-          <InfoRow label="เริ่มต้น"   value={`${task.startDate} · ${task.startTime}`} />
-          {task.endDate && <InfoRow label="สิ้นสุด" value={`${task.endDate} · ${task.endTime}`} />}
+          <InfoRow label="เริ่มต้น"   value={`${formatDate(task.startDate)} · ${formatTime(task.startTime)}`} />
+          {task.endDate && <InfoRow label="สิ้นสุด" value={`${formatDate(task.endDate)} · ${formatTime(task.endTime ?? "")}`} />}
           <InfoRow label="สถานที่"    value={task.location} />
           <InfoRow label="ทีม"        value={<DepartmentChip name={task.department} />} />
-          <InfoRow label="ประเภทงาน"  value={<span className="text-[12px] font-medium" style={{ color: TYPE_CONFIG[task.type].color }}>{task.type}</span>} />
+          {task.type && <InfoRow label="ประเภทงาน" value={task.type} />}
           <InfoRow label="รหัสงาน"    value={<span className="font-mono text-[12px]">{task.id}</span>} />
         </Section>
 
@@ -181,9 +168,16 @@ function OffsiteDetailPanel({ task, onClose, onEdit, onDeleted }: { task: Offsit
   );
 }
 
-function OffsiteEditPanel({ task, departments, onDone, onSaved }: { task: OffsiteTask; departments: string[]; onDone: () => void; onSaved: (updated: OffsiteTask) => void }) {
+function OffsiteEditPanel({ task, companies, onDone, onSaved }: { task: OffsiteTask; companies: Company[]; onDone: () => void; onSaved: (updated: OffsiteTask) => void }) {
   async function handleSubmit(data: OffsiteTaskFormData) {
     await updateTask(task.id, data);
+    await createNotification({
+      type: "info",
+      category: "การปฏิบัติงานนอกสถานที่",
+      title: `แก้ไขงานนอกสถานที่: ${data.title}`,
+      message: `${data.type} · ${formatDate(data.startDate)}`,
+      href: `/offsite/${task.id}`,
+    });
     onSaved({ ...task, ...data });
     onDone();
   }
@@ -195,12 +189,12 @@ function OffsiteEditPanel({ task, departments, onDone, onSaved }: { task: Offsit
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
         </button>
       </div>
-      <OffsiteTaskForm defaultValues={task} taskId={task.id} departments={departments} submitLabel="บันทึกการเปลี่ยนแปลง" onSubmit={handleSubmit} onCancel={onDone} />
+      <OffsiteTaskForm defaultValues={task} taskId={task.id} companies={companies} submitLabel="บันทึกการเปลี่ยนแปลง" onSubmit={handleSubmit} onCancel={onDone} />
     </div>
   );
 }
 
-function OffsiteAddPanel({ departments, onDone, onAdded }: { departments: string[]; onDone: () => void; onAdded: (t: OffsiteTask) => void }) {
+function OffsiteAddPanel({ companies, onDone, onAdded }: { companies: Company[]; onDone: () => void; onAdded: (t: OffsiteTask) => void }) {
   async function handleSubmit(data: OffsiteTaskFormData) {
     const id = await createTask(data as Omit<OffsiteTask, "id">);
     onAdded({ id, ...data } as OffsiteTask);
@@ -214,7 +208,7 @@ function OffsiteAddPanel({ departments, onDone, onAdded }: { departments: string
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
         </button>
       </div>
-      <OffsiteTaskForm departments={departments} submitLabel="สร้างงาน" onSubmit={handleSubmit} onCancel={onDone} />
+      <OffsiteTaskForm companies={companies} submitLabel="สร้างงาน" onSubmit={handleSubmit} onCancel={onDone} />
     </div>
   );
 }
@@ -236,37 +230,56 @@ export default function OfsitePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<OffsiteTask[]>([]);
-  const [departments, setDepartments] = useState<string[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<WorkStatus | "all">("all");
-  const [typeFilter, setTypeFilter] = useState<WorkType | "all">("all");
+  const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [deptFilter, setDeptFilter] = useState<string>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [panelMode, setPanelMode] = useState<"detail" | "edit" | "add">("detail");
 
   useEffect(() => {
-    Promise.all([fetchTasks(), fetchAllDepartments()]).then(([data, depts]) => {
+    Promise.all([fetchTasks(), fetchCompanies()]).then(([data, cos]) => {
       setTasks(data);
-      setDepartments(depts);
+      setCompanies(cos);
       setLoading(false);
     });
   }, []);
 
+  const companyDeptMap = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const c of companies) map[c.name] = c.departments ?? [];
+    return map;
+  }, [companies]);
+
+  const availableFilterDepts = useMemo(() => {
+    if (companyFilter !== "all") return companyDeptMap[companyFilter] ?? [];
+    const set = new Set<string>();
+    for (const c of companies) for (const d of c.departments ?? []) set.add(d);
+    return [...set].sort();
+  }, [companyFilter, companyDeptMap, companies]);
+
+  function handleCompanyFilter(name: string) {
+    setCompanyFilter(name);
+    if (name !== "all") {
+      const depts = companyDeptMap[name] ?? [];
+      if (deptFilter !== "all" && !depts.includes(deptFilter)) setDeptFilter("all");
+    }
+  }
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return tasks.filter((t) => {
-      if (statusFilter !== "all" && t.status !== statusFilter) return false;
-      if (typeFilter !== "all" && t.type !== typeFilter) return false;
+      if (companyFilter !== "all" && t.company !== companyFilter) return false;
       if (deptFilter !== "all" && t.department !== deptFilter) return false;
       if (q) {
-        const hay = [t.title, t.location, t.id, t.note ?? "", t.type].join(" ").toLowerCase();
+        const hay = [t.title, t.location, t.id, t.note ?? "", t.type, t.company ?? ""].join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [tasks, search, statusFilter, typeFilter, deptFilter]);
+  }, [tasks, search, companyFilter, deptFilter]);
 
-  const hasFilter = search || statusFilter !== "all" || typeFilter !== "all" || deptFilter !== "all";
+  const hasFilter = search || companyFilter !== "all" || deptFilter !== "all";
 
   if (loading) {
     return (
@@ -275,11 +288,8 @@ export default function OfsitePage() {
         <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-md" aria-hidden="true">
           <div className="space-y-2.5 px-4 pt-3 pb-3">
             <div className="h-9 w-full animate-pulse rounded-[6px] bg-border" />
-            <div className="grid grid-cols-3 gap-2">
-              <div className="h-9 animate-pulse rounded-[6px] bg-border" />
-              <div className="h-9 animate-pulse rounded-[6px] bg-border" />
-              <div className="h-9 animate-pulse rounded-[6px] bg-border" />
-            </div>
+            <div className="h-9 animate-pulse rounded-[6px] bg-border" />
+            <div className="h-9 animate-pulse rounded-[6px] bg-border" />
           </div>
         </div>
         <main className="w-full px-4 py-4" aria-busy="true" aria-label="กำลังโหลด">
@@ -290,10 +300,7 @@ export default function OfsitePage() {
                 <div className="flex items-start gap-3 px-4 pt-4">
                   <div className="mt-0.5 h-10 w-10 shrink-0 animate-pulse rounded-[10px] bg-border" />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="h-[42px] flex-1 animate-pulse rounded-[3px] bg-border" />
-                      <div className="mt-0.5 h-5 w-24 shrink-0 animate-pulse rounded-full bg-border" />
-                    </div>
+                    <div className="h-[42px] flex-1 animate-pulse rounded-[3px] bg-border" />
                     <div className="mt-2 flex gap-2">
                       <div className="h-3.5 w-20 animate-pulse rounded-[3px] bg-border" />
                       <div className="h-3.5 w-12 animate-pulse rounded-[3px] bg-border" />
@@ -348,18 +355,14 @@ export default function OfsitePage() {
                   <svg className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
                 )}
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as WorkStatus | "all")} aria-label="กรองตามสถานะ" className="field-input">
-                  {STATUS_FILTER_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                </select>
-                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as WorkType | "all")} aria-label="กรองตามประเภท" className="field-input">
-                  {TYPE_FILTER_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                </select>
-                <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} aria-label="กรองตามทีม" className="field-input">
-                  <option value="all">ทุกทีม</option>
-                  {departments.map((d) => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
+              <select value={companyFilter} onChange={(e) => handleCompanyFilter(e.target.value)} aria-label="กรองตามบริษัท" className="field-input w-full">
+                <option value="all">ทุกบริษัท</option>
+                {companies.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+              </select>
+              <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} aria-label="กรองตามทีม" className="field-input w-full">
+                <option value="all">ทุกทีม</option>
+                {availableFilterDepts.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
             </div>
           </div>
 
@@ -369,7 +372,7 @@ export default function OfsitePage() {
                 {filtered.length > 0 ? `${filtered.length} งาน` : "ไม่พบงานที่ตรงกัน"}
               </p>
               {hasFilter && (
-                <button onClick={() => { setSearch(""); setStatusFilter("all"); setTypeFilter("all"); setDeptFilter("all"); }} className="text-[12px] text-primary-text hover:underline">
+                <button onClick={() => { setSearch(""); setCompanyFilter("all"); setDeptFilter("all"); }} className="text-[12px] text-primary-text hover:underline">
                   ล้างตัวกรอง
                 </button>
               )}
@@ -396,12 +399,12 @@ export default function OfsitePage() {
         <div className="hidden lg:flex lg:w-1/2 lg:min-h-0 lg:flex-col lg:overflow-y-auto">
           {(() => {
             if (panelMode === "add") return (
-              <OffsiteAddPanel departments={departments} onDone={() => setPanelMode("detail")} onAdded={(t) => setTasks((prev) => [t, ...prev])} />
+              <OffsiteAddPanel companies={companies} onDone={() => setPanelMode("detail")} onAdded={(t) => setTasks((prev) => [t, ...prev])} />
             );
             const task = selectedId ? tasks.find((t) => t.id === selectedId) : null;
             if (!task) return <DetailEmptyState />;
             if (panelMode === "edit") return (
-              <OffsiteEditPanel task={task} departments={departments} onDone={() => setPanelMode("detail")} onSaved={(updated) => setTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t))} />
+              <OffsiteEditPanel task={task} companies={companies} onDone={() => setPanelMode("detail")} onSaved={(updated) => setTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t))} />
             );
             return (
               <OffsiteDetailPanel

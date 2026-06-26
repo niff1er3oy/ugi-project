@@ -6,34 +6,17 @@ import { type Company } from "@/lib/companies";
 
 export type CompanyFormData = Omit<Company, "id">;
 
-const COLOR_PRESETS: { label: string; color: string; bg: string }[] = [
-  { label: "ม่วง",      color: "oklch(0.44 0.27 292)",  bg: "oklch(0.94 0.055 292)" },
-  { label: "ฟ้า-เขียว", color: "oklch(0.42 0.14 195)",  bg: "oklch(0.93 0.04 195)"  },
-  { label: "แดง",       color: "oklch(0.50 0.17 25)",   bg: "oklch(0.95 0.04 25)"   },
-  { label: "เขียว",     color: "oklch(0.42 0.16 145)",  bg: "oklch(0.93 0.06 145)"  },
-  { label: "ทอง",       color: "oklch(0.46 0.16 75)",   bg: "oklch(0.95 0.04 75)"   },
-  { label: "ชมพู",      color: "oklch(0.50 0.18 350)",  bg: "oklch(0.95 0.04 350)"  },
-  { label: "น้ำเงิน",   color: "oklch(0.44 0.20 250)",  bg: "oklch(0.94 0.04 250)"  },
-  { label: "เทา",       color: "oklch(0.40 0.01 292)",  bg: "oklch(0.94 0.005 292)" },
-];
-
-const DEFAULT_COLOR = COLOR_PRESETS[0];
-
 // ── Logo picker ────────────────────────────────────────────────
 
 function LogoPicker({
   logoURL,
   initials,
-  bg,
-  color,
   uploading,
   onChange,
   onClear,
 }: {
   logoURL?: string;
   initials: string;
-  bg: string;
-  color: string;
   uploading: boolean;
   onChange: (file: File) => void;
   onClear: () => void;
@@ -53,10 +36,7 @@ function LogoPicker({
           {logoURL ? (
             <img src={logoURL} alt="" className="h-full w-full object-contain p-1" />
           ) : (
-            <div
-              className="flex h-full w-full items-center justify-center font-bold text-[22px]"
-              style={{ backgroundColor: bg, color }}
-            >
+            <div className="flex h-full w-full items-center justify-center bg-primary font-bold text-[22px] text-white">
               {initials}
             </div>
           )}
@@ -153,16 +133,8 @@ export default function CompanyForm({
 }) {
   const [form, setForm] = useState<CompanyFormData>({
     name:        defaultValues?.name        ?? "",
-    shortName:   defaultValues?.shortName   ?? "",
-    type:        defaultValues?.type        ?? "จำกัด",
-    taxId:       defaultValues?.taxId       ?? "",
-    address:     defaultValues?.address     ?? "",
+    type:        defaultValues?.type        ?? "นิติบุคคล",
     phone:       defaultValues?.phone       ?? "",
-    email:       defaultValues?.email       ?? "",
-    website:     defaultValues?.website     ?? "",
-    founded:     defaultValues?.founded     ?? "",
-    color:       defaultValues?.color       ?? DEFAULT_COLOR.color,
-    bg:          defaultValues?.bg          ?? DEFAULT_COLOR.bg,
     logoURL:     defaultValues?.logoURL,
     departments: defaultValues?.departments ?? [],
   });
@@ -189,9 +161,7 @@ export default function CompanyForm({
   }
 
   const initials =
-    form.shortName.replace(/[^A-Z]/g, "").slice(0, 2) ||
-    form.shortName.slice(0, 2).toUpperCase() ||
-    "บ";
+    form.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "บ";
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(form); }} className="space-y-7">
@@ -200,67 +170,40 @@ export default function CompanyForm({
       <LogoPicker
         logoURL={form.logoURL}
         initials={initials}
-        bg={form.bg}
-        color={form.color}
         uploading={uploading}
         onChange={handleLogoChange}
         onClear={() => set("logoURL", undefined)}
       />
 
       <FormSection label="ข้อมูลบริษัท">
-        <Field label="ชื่อย่อ" required>
-          <input
-            className="field-input"
-            value={form.shortName}
-            onChange={(e) => set("shortName", e.target.value)}
-            placeholder="UGI Manufacturing"
-            autoFocus
-            required
-          />
-        </Field>
-        <Field label="ชื่อเต็ม" required>
+        <Field label="ชื่อ" required>
           <input
             className="field-input"
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
-            placeholder="บริษัท UGI แมนูแฟคเจอริ่ง จำกัด"
+            placeholder="บริษัท UGI แมนูแฟคเจอริ่ง"
+            autoFocus
             required
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="ประเภทนิติบุคคล">
-            <select
-              className="field-input"
-              value={form.type}
-              onChange={(e) => set("type", e.target.value as Company["type"])}
-            >
-              <option value="จำกัด">จำกัด</option>
-              <option value="มหาชน">มหาชน</option>
-              <option value="จำกัด (มหาชน)">จำกัด (มหาชน)</option>
-            </select>
-          </Field>
-          <Field label="ปีก่อตั้ง (พ.ศ.)">
-            <input
-              className="field-input"
-              value={form.founded}
-              onChange={(e) => set("founded", e.target.value)}
-              placeholder="2556"
-              maxLength={4}
-            />
-          </Field>
-        </div>
-        <Field label="เลขทะเบียนนิติบุคคล">
-          <input
-            className="field-input font-mono"
-            value={form.taxId}
-            onChange={(e) => set("taxId", e.target.value)}
-            placeholder="0105556123456"
-            maxLength={13}
-          />
+        <Field label="ประเภท">
+          <div className="flex gap-2">
+            {(["นิติบุคคล", "บุคคลธรรมดา"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => set("type", t)}
+                className={`flex-1 rounded-[6px] border py-2 text-[13px] font-medium transition-colors duration-150 ${
+                  form.type === t
+                    ? "border-primary bg-primary text-white"
+                    : "border-border bg-background text-ink hover:bg-surface"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
         </Field>
-      </FormSection>
-
-      <FormSection label="ช่องทางติดต่อ">
         <Field label="โทรศัพท์">
           <input
             type="tel"
@@ -270,35 +213,9 @@ export default function CompanyForm({
             placeholder="02-200-3000"
           />
         </Field>
-        <Field label="อีเมล">
-          <input
-            type="email"
-            className="field-input"
-            value={form.email}
-            onChange={(e) => set("email", e.target.value)}
-            placeholder="info@company.co.th"
-          />
-        </Field>
-        <Field label="เว็บไซต์">
-          <input
-            className="field-input"
-            value={form.website}
-            onChange={(e) => set("website", e.target.value)}
-            placeholder="www.ugi.co.th"
-          />
-        </Field>
-        <Field label="ที่อยู่">
-          <textarea
-            className="field-input min-h-[72px] resize-none"
-            value={form.address}
-            onChange={(e) => set("address", e.target.value)}
-            placeholder="เลขที่ ถนน แขวง เขต จังหวัด รหัสไปรษณีย์"
-            rows={3}
-          />
-        </Field>
       </FormSection>
 
-      <FormSection label="แผนก">
+      <FormSection label="ทีม">
         <div className="flex flex-wrap gap-2">
           {form.departments.map((dept) => (
             <span
@@ -349,56 +266,6 @@ export default function CompanyForm({
           >
             เพิ่ม
           </button>
-        </div>
-      </FormSection>
-
-      <FormSection label="สีบริษัท">
-        <div className="grid grid-cols-8 gap-2">
-          {COLOR_PRESETS.map((preset) => {
-            const active = form.color === preset.color;
-            return (
-              <button
-                key={preset.color}
-                type="button"
-                title={preset.label}
-                aria-label={preset.label}
-                aria-pressed={active}
-                onClick={() => setForm((f) => ({ ...f, color: preset.color, bg: preset.bg }))}
-                className="relative aspect-square rounded-[8px] transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                style={{ backgroundColor: preset.color }}
-              >
-                {active && (
-                  <svg className="absolute inset-0 m-auto h-3.5 w-3.5 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
-        </div>
-        {/* Live preview */}
-        <div
-          className="mt-1 flex items-center gap-3 rounded-[10px] px-3 py-2.5"
-          style={{ backgroundColor: form.bg }}
-        >
-          <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[10px] text-[11px] font-bold"
-            style={form.logoURL ? { backgroundColor: form.bg } : { backgroundColor: form.color, color: "white" }}
-          >
-            {form.logoURL ? (
-              <img src={form.logoURL} alt="" className="h-full w-full object-contain p-0.5" />
-            ) : (
-              initials
-            )}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-[13px] font-semibold leading-snug" style={{ color: form.color }}>
-              {form.shortName || "ชื่อย่อบริษัท"}
-            </p>
-            <p className="truncate text-[11px] leading-snug" style={{ color: form.color, opacity: 0.65 }}>
-              {form.name || "ชื่อเต็มบริษัท"}
-            </p>
-          </div>
         </div>
       </FormSection>
 
